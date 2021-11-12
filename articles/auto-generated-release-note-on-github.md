@@ -5,6 +5,8 @@ type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["GitHub", "Git"]
 published: true
 ---
+*Zenn の試し書きを兼ねているので後ほどもうちょっとちゃんと書きます*
+
 GitHub のリリースノートを自動生成する機能がリリースされています。
 
 https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes
