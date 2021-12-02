@@ -256,4 +256,4 @@ https://twitter.com/nanasess/status/1463343851112779780
 
 # ご静聴ありがとうございました！
 
-ご質問などありましたら、 [GitHub の issues にてお知らせください！](https://github.com/nanasess/zenn-content/issues)
+ご質問などありましたら、 Discussion にてお知らせください！
