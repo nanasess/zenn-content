@@ -190,6 +190,7 @@ https://github.com/EC-CUBE/ec-cube/tree/4.1/zap/selenium/ci/TypeScript#automated
 
 # ファイル改竄を防ぐにはどうしたら良いか？
 
+- そもそも、XSS などの脆弱性を出さないようにする
 - **Webサーバーのユーザー権限で、テンプレートや JavaScript ファイルを変更させないこと**
 - **Webサーバーのユーザー権限で、書き込める範囲を最小限にすること**
 
