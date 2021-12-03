@@ -2,7 +2,7 @@
 title: "脆弱性対応勉強会Expansion 第05回(OWASP ZAP&EC-CUBE)発表資料"
 emoji: "🐝"
 type: "tech" # tech: 技術記事 / idea: アイデア
-topics: ["ECCUBE", "OWASP", "Security"]
+topics: ["ECCUBE", "OWASPZAP", "Security"]
 published: true
 # try also 'default' to start simple
 theme: seriph
