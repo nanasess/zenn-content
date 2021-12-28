@@ -31,6 +31,9 @@ drawings:
 
 https://twitter.com/hogehuga/status/1453695774550679556
 
+[当日の録画はYoutubeにてご覧ください](https://www.youtube.com/watch?v=0CSzoz7B-mY)(2時間くらいあります)
+
+
 
 # 自己紹介
 
