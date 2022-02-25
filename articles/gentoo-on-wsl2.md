@@ -124,6 +124,16 @@ sudo emerge --ask github-cli
 sudo emerge --ask www-client/google-chrome
 ```
 
+### equery
+
+Portage の管理を簡単にするツール
+
+https://wiki.gentoo.org/wiki/Equery/ja
+
+```
+emerge --ask app-portage/gentoolkit
+```
+
 ### Emacs
 
 ```shell
@@ -154,3 +164,16 @@ onedrive --synchronize --single-directory 'emacs'
 ## Playwright で必要なライブラリ
 
 https://github.com/microsoft/playwright/blob/main/packages/playwright-core/src/utils/nativeDeps.ts
+
+- `x11-misc/xvfb-run` と `media-video/ffmpeg` に依存するライブラリが入っていれば、 Playwright の video を有効にできることを確認
+  - `--headed` で実行する必要がある
+
+```
+## MAKEOPTS="-j28" とかだとビルド中にプロセスが落ちる
+sudo MAKEOPTS="-j2" ACCEPT_KEYWORDS="~amd64" emerge --ask dev-lang/spidermonkey
+sudo emerge --ask x11-misc/xvfb-run
+sudo emerge --ask media-video/ffmpeg
+```
+
+
+
