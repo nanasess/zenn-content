@@ -151,3 +151,6 @@ sudo emerge --ask net-misc/onedrive
 onedrive --synchronize --single-directory 'emacs'
 ```
 
+## Playwright で必要なライブラリ
+
+https://github.com/microsoft/playwright/blob/main/packages/playwright-core/src/utils/nativeDeps.ts
