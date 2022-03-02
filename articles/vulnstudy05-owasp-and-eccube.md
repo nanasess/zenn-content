@@ -117,7 +117,7 @@ EC-CUBEを安全に運用するために大切なこと。
 
 # 自動化するためにはどうしたら良いか？
 
-- Selenium を併用して、日本語入力の壁を乗り越える！
+- ~~Selenium~~ Playwright[^1]を併用して、日本語入力の壁を乗り越える！
 - POST パラメータを工夫して、特殊な画面遷移の壁を乗り越える！
 - 参考: [Driving OWASP ZAP with Selenium](https://owasp.org/www-chapter-london/assets/slides/OWASPLondon-OWASP-ZAP-Selenium-20180830-PDF.pdf)
 
@@ -135,9 +135,9 @@ EC-CUBEを安全に運用するために大切なこと。
 
 # 自動化の方針
 
-- OWASP ZAP の API と Selenium を使用してアクティブスキャンを実行する。おおまかな流れは以下の通り
+- OWASP ZAP の API と ~~Selenium~~ Playwright[^1] を使用してアクティブスキャンを実行する。おおまかな流れは以下の通り
   1. OWASP ZAP の API でコンテキストや、自動ログインを設定する
-  2. Selenium で OWASP ZAP の Proxy を通してクロールする
+  2. ~~Selenium~~ Playwright[^1] で OWASP ZAP の Proxy を通してクロールする
   3. クロールしたページに対してアクティブスキャンを実行する
   4. OWASP ZAP のセッションを保存する
 - 毎週1回0時に実行する
@@ -261,3 +261,5 @@ https://twitter.com/nanasess/status/1463343851112779780
 # ご静聴ありがとうございました！
 
 ご質問などありましたら、 Discussion にてお知らせください！
+
+[^1]: [EC-CUBE/ec-cube#5263](https://github.com/EC-CUBE/ec-cube/pull/5263) にて、現在は Playwright の実装に変更されました
