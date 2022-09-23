@@ -21,6 +21,24 @@ Stage3 をインポートするだけでインストールできる
 wsl --import Gentoo C:\Users\nanasess\wsl\Gentoo\ .\stage3-amd64-openrc-20220206T170533Z.tar --version 2
 ```
 
+### 2022-09-23追記
+
+[0.67.6](https://github.com/microsoft/WSL/releases/tag/0.67.6) より、 [systemd が利用できるようになった](https://devblogs.microsoft.com/commandline/systemd-support-is-now-available-in-wsl/)。
+以下の手順で systemd を利用可能
+
+1. `stage3-amd64-systemd-YYYYMMDDTHHMMSSZ.tar.xz` をダウンロード
+2. `wsl --import` を実行する
+   ```
+   wsl --import Gentoo C:\Users\nanasess\wsl\Gentoo\ .\stage3-amd64-systemd-20220206T170533Z.tar --version 2
+   ```
+3. `/etc/wsl.conf` に以下を追記する
+   ```
+   [boot]
+   systemd=true
+   ```
+4. `wsl --shutdown` を実行し、 WSL2 を再起動する
+5. `systemctl list-units --type=service` を実行して、サービス一覧が確認できれば OK
+
 ## ユーザー作成とパスワード設定
 
 ```shell
@@ -175,5 +193,33 @@ sudo emerge --ask x11-misc/xvfb-run
 sudo emerge --ask media-video/ffmpeg
 ```
 
+## OpenRC から systemd へ移行する
 
+[OpenRCなGentoo Linuxをsystemd化する](https://suzuki-kengo.net/openrc-systemd/) を参考にさせていただきました。
+
+WSL2 の場合はWSLのカーネルを使用するため、カーネルの再構築は必要ない。
+プロファイルを変更し、 `emerge @world` を実行すれば利用できる。
+
+1. eselectコマンドを使用して、systemd用のプロファイルに切り替える
+    ```
+    eselect profile list　　　　#現在のプロファイル確認＆sytemdプロファイルの番号を確認。
+    eselect profile set 15      #変更
+    eselect profile list 　　   #確認
+    -------(省略）---------
+    [15]  default/linux/amd64/17.1/systemd (stable) *
+    ```
+2. 変更したプロファイルに基づき、システムを再構築する
+    ```
+    emerge -avDN @world
+    ```
+3. `/etc/wsl.conf` に以下を追記する
+   ```
+   [boot]
+   systemd=true
+   ```
+4. `wsl --shutdown` を実行し、 WSL2 を再起動する
+5. `systemctl list-units --type=service` を実行して、サービス一覧が確認できれば OK
+
+### See Also
+- https://suzuki-kengo.net/openrc-systemd/
 
