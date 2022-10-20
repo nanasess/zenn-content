@@ -3,7 +3,7 @@ title: "Composerを使いこなしてEC-CUBE4系プラグインの開発効率�
 emoji: "🐎"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["ECCUBE", "Plugin"]
-published: false
+published: true
 ---
 EC-CUBE4系のプラグイン開発、みなさんどうされていますか？
 
