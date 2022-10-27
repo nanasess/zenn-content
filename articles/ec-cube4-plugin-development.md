@@ -165,7 +165,9 @@ lrwxrwxrwx  1 nanasess nanasess   26 10月 17 16:08 Sample -> ../../../Sample/
 ## その他
 
 EC-CUBE4.2.1 からは、[本インストール方法を活用したオプション](https://github.com/EC-CUBE/ec-cube/pull/5843) が追加されます。
-また [PHPバージョンごとに Docker イメージを作成する](https://github.com/EC-CUBE/ec-cube/pull/5801)機能が取り込まれると、本インストール方法を活用してE2Eテストをするのがとても楽になりますので、また記事にしたいと思います。
 
+また [PHPバージョンごとに Docker イメージを作成する](https://github.com/EC-CUBE/ec-cube/pull/5801)機能を活用すると、E2Eテストも10分くらいで書けてしまいます。
+
+https://zenn.dev/nanasess/articles/ec-cube-plugin-e2etesting-in-10mins
 
 **Composerを使いこなしてEC-CUBE4系プラグインの開発効率を爆上げして睡眠時間を増やしましょう！**
