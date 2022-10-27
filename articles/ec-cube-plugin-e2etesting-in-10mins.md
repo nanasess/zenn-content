@@ -371,7 +371,7 @@ npx playwright test
     - name: Setup EC-CUBE
       env:
         PLUGIN_CODE: <プラグインコード>
-        PLUGIN_NAME: <プラグインコード>
+        PLUGIN_NAME: ec-cube/<すべて小文字のプラグインコード>
         # EC-CUBE 4.0.x のみ
         ECCUBE_AUTHENTICATION_KEY: ${{ secrets.ECCUBE_AUTHENTICATION_KEY }}
       run: docker compose up -d
