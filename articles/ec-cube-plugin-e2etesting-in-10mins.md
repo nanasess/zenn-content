@@ -304,7 +304,7 @@ docker-compose.dev.yml の `entrypoint` にスクリプトを書いておくこ�
 ```yaml
 ### docker-compose.dev.yml の entrypoint の例です
 ### dtb_payment_option に支払い方法の設定を INSERT しておくことで、
-### EC-CUBE 起動直後にプラグインを利用可能としています。
+### EC-CUBE 起動直後にプラグインで追加された支払い方法を利用できるようにしています。
     entrypoint: >
       /bin/bash -c "
       docker-php-entrypoint ls &&
