@@ -296,6 +296,29 @@ docker-compose up -d -f docker-compose.yml -f docker-compose.dev.yml
 http://localhost:8080 へアクセスしてフロント画面が起動しているのを確認してください。
 管理画面は http://localhost:8080/admin/ です。(ID: admin, PASS: password)
 
+### (オプション) 起動時にプラグインの初期設定を完了する
+
+docker-compose.dev.yml の `entrypoint` にスクリプトを書いておくことで、EC-CUBEの起動時にプラグインの初期設定が完了した状態にできます。
+これを活用することで、E2Eテストの自動化が格段にしやすくなります。
+
+```yaml
+### docker-compose.dev.yml の entrypoint の例です
+### dtb_payment_option に支払い方法の設定を INSERT しておくことで、
+### EC-CUBE 起動直後にプラグインを利用可能としています。
+    entrypoint: >
+      /bin/bash -c "
+      docker-php-entrypoint ls &&
+      bin/console doctrine:query:sql \"UPDATE dtb_base_info SET authentication_key = '$${ECCUBE_AUTHENTICATION_KEY}'\" &&
+      composer config repositories.plugin '{\"type\": \"path\", \"url\": \"../plugin\"}' &&
+      bin/console eccube:composer:require ec-cube/SamplePayment &&
+      bin/console eccube:plugin:enable --code=SamplePayment &&
+      bin/console doctrine:query:sql \"INSERT INTO dtb_payment_option VALUES(1,7,'paymentoption');\" &&
+      bin/console doctrine:query:sql \"INSERT INTO dtb_payment_option VALUES(1,6,'paymentoption');\" &&
+      bin/console doctrine:query:sql \"INSERT INTO dtb_payment_option VALUES(1,5,'paymentoption');\" &&
+      apache2-foreground
+      "
+```
+
 ## playwright のセットアップ
 
 E2Eテストを実行するための Playwright をセットアップします。
