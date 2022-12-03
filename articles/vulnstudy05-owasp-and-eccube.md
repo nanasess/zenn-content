@@ -197,6 +197,14 @@ https://github.com/EC-CUBE/ec-cube/tree/4.1/zap/selenium/ci/TypeScript#automated
 - **Webサーバーのユーザー権限で、テンプレートや JavaScript ファイルを変更させないこと**
 - **Webサーバーのユーザー権限で、書き込める範囲を最小限にすること**
 
+## そもそも、ユーザー権限って？
+
+「誰が」、「どのような機能を動すか」を定める権限です。
+
+例えば、 `ssh taro@example.jp` でログインした場合は、`taro` さんのユーザー権限でコマンドを実行します。
+VPS やクラウドなどのWebサーバーは、 `apache` や `www-data` などのユーザー権限が割り当てられている場合が多いです。
+レンタルサーバーは、FTP(S)/SSHのユーザー権限(`taro` さんのユーザー権限)でWebサーバーを動かしている場合が多いです。
+
 # Webサーバーのユーザー権限で、不正な書き込みを防ぐためにはどうしたら良いか？
 
 - ファイルのアップロード、変更はできる限り FTP(S)/SSH を使用することにして、とにかく Webサーバー権限で書き込める範囲を最小限にする
@@ -247,6 +255,7 @@ https://twitter.com/nanasess/status/1463343851112779780
 - .htaccess を改竄されるケースもある
 - 画像ファイルに偽装したバックドアを設置されたケースもある
 - .env も見られないように注意
+- .git/config なども注意
 - Nginx など .htaccess の効かない環境は注意
 - [WordPress の安全性を高める記事](https://wpdocs.osdn.jp/WordPress_の安全性を高める)は、とても参考になります
 
