@@ -220,6 +220,14 @@ WSL2 の場合はWSLのカーネルを使用するため、カーネルの再構
 4. `wsl --shutdown` を実行し、 WSL2 を再起動する
 5. `systemctl list-units --type=service` を実行して、サービス一覧が確認できれば OK
 
+## すべてのパッケージをリビルドする
+
+```
+sudo emerge -e world && emerge --depclean -a
+```
+
+see https://www.reddit.com/r/Gentoo/comments/hg9dit/comment/fw5su2t/?utm_source=share&utm_medium=web2x&context=3
+
 ### See Also
 - https://suzuki-kengo.net/openrc-systemd/
 
