@@ -39,6 +39,17 @@ wsl --import Gentoo C:\Users\nanasess\wsl\Gentoo\ .\stage3-amd64-openrc-20220206
 4. `wsl --shutdown` を実行し、 WSL2 を再起動する
 5. `systemctl list-units --type=service` を実行して、サービス一覧が確認できれば OK
 
+### 2023-02-05追記
+
+上記では systemd が起動しない模様。
+以下を /etc/wsl.conf に追記することで systemd を使用できるようになった
+
+```
+[boot]
+systemd=true
+command = "/usr/bin/env -i /usr/bin/unshare --pid --fork --mount-proc /lib/systemd/systemd --system-unit=basic.target"
+```
+
 ## ユーザー作成とパスワード設定
 
 ```shell
