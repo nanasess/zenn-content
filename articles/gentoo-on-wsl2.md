@@ -50,6 +50,8 @@ systemd=true
 command = "/usr/bin/env -i /usr/bin/unshare --pid --fork --mount-proc /lib/systemd/systemd --system-unit=basic.target"
 ```
 
+see https://askubuntu.com/a/1379567
+
 ## ユーザー作成とパスワード設定
 
 ```shell
