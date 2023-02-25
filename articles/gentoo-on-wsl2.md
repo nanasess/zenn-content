@@ -52,6 +52,19 @@ command = "/usr/bin/env -i /usr/bin/unshare --pid --fork --mount-proc /lib/syste
 
 see https://askubuntu.com/a/1379567
 
+### 2023-02-25追記
+
+Emacs を GTK+ サポート付きでビルドすると、 xwidget をロードした瞬間に Emacs がクラッシュする。
+[`export WEBKIT_FORCE_SANDBOX=0`](https://github.com/microsoft/WSL/discussions/6506#discussioncomment-986330) を設定しておくことで回避できるが、 Windows のスタートメニューのアイコンから起動した場合は、ユーザーのシェル初期化ファイルを経由しないため、環境変数の設定ができない。
+
+これを回避するためには、以下のコマンドを実行するショートカットをデスクトップ等に作成しておく
+
+```
+C:\Windows\System32\wsl.exe -d Gentoo --cd /home/nanasess -- zsh -lic /usr/bin/emacs
+```
+
+see https://stackoverflow.com/a/71112917
+
 ## ユーザー作成とパスワード設定
 
 ```shell
