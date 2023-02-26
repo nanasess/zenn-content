@@ -60,7 +60,7 @@ Emacs を GTK+ サポート付きでビルドすると、 xwidget をロード�
 これを回避するためには、以下のコマンドを実行するショートカットをデスクトップ等に作成しておく
 
 ```
-C:\Windows\System32\wsl.exe -d Gentoo --cd /home/nanasess -- zsh -lic /usr/bin/emacs
+C:\Windows\System32\wslg.exe -d Gentoo --cd "~" -- zsh -lic /usr/bin/emacs
 ```
 
 see https://stackoverflow.com/a/71112917
