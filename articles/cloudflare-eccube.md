@@ -3,7 +3,7 @@ title: "EC-CUBE を Cloudflare で不正アクセスから護る"
 emoji: "🔥"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["eccube", "security", "Cloudflare"]
-published: false
+published: true
 published_at: 2023-12-15 23:55
 ---
 2023年もあと少し。この1年を振り返ってみると、EC-CUBEユーザーグループの勉強会でセキュリティの話ばかりしていた気がします。
