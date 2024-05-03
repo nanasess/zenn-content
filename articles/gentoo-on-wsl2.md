@@ -205,6 +205,10 @@ sudo emerge --ask net-misc/onedrive
 onedrive --synchronize --single-directory 'emacs'
 ```
 
+## /etc/portage 以下の IaC
+
+https://github.com/nanasess/gentoo-ansible
+
 ## Playwright で必要なライブラリ
 
 https://github.com/microsoft/playwright/blob/main/packages/playwright-core/src/utils/nativeDeps.ts
