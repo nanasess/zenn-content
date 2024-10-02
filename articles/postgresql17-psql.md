@@ -32,7 +32,8 @@ PostgreSQL17 から `pg_database.daticulocale` が `pg_database.datlocale` に�
 
 ## 対応方法
 
-PostgreSQL17 の psql を使いましょう
+PostgreSQL17 の psql を使いましょう。
+または、 [`pgcli`](https://qiita.com/nanasess/items/f985e3d6250247aaa03c) を使えば問題ありません。
 
 [docker compose の公式ドキュメント](https://docs.docker.jp/v17.06/compose/startup-order.html) に倣って、 psql コマンドで死活監視している場合は、 `SELECT 1` などを使用すると良いです。
 
