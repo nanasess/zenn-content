@@ -15,6 +15,7 @@ EC-CUBEの開発をする傍らサーバーの運用もするのですが、運�
 
 - Microsoft Azure の仮想マシン(IaaS)を使用
 - AlmaLinux8 または 9 を利用して、最大10年間のセキュリティサポート
+    - 一部 Miracle Linux8 を利用
 - 1アカウント1VMで冗長構成なし
 - 基本的に B1ms(1コア2GB) インスタンスを利用。必要に応じてスケールアップ
 - SSH公開鍵認証での接続のみ可能
@@ -89,6 +90,16 @@ https://github.com/
 https://ja.mackerel.io/
 
 ## その他ツールなど
+
+### Facebook Messenger
+
+- 顧客連絡はほとんどこれ
+- だいたい誰でも使える
+- 添付ファイル容量制限なし(1ファイル100MB)
+- 過去ログ閲覧制限なし
+- 無料
+
+しかし、検索とか他サービスの連携とか考えると Line Works とかの方がよいのか悩み中
 
 ### Visual Studio Code
 
