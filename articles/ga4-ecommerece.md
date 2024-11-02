@@ -129,3 +129,6 @@ dataLayer.push({
     }<!--{if !$smarty.foreach.arrProducts.last}-->,<!--{/if}-->
 <!--{/foreach}-->
 
+## 番外編
+
+Cloudflare でメンテナンス画面
