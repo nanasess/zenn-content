@@ -45,7 +45,7 @@ image: ghcr.io/nanasess/ec-cube2-php:5.5-apache-2.12.6
 - 2.13.5
 - 2.17.x
 
-2.17.x は、公式の Docker イメージ(PHP5.4-8.1)があります
+2.17.x は、公式の Docker イメージ(PHP7.4-8.4)があります
 
 ```yaml
 ## 例) EC-CUBE 2.17.x をPHP 8.0 で使用したい場合
@@ -61,13 +61,13 @@ Docker コンテナが起動したら、 https://localhost:4430 にアクセス�
 ### PostgreSQL を使用する場合
 
 ```
-docker-compose -f docker-compose.yml -f docker-compose.pgsql.yml -f docker-compose.dev.yml up -d
+docker compose -f docker-compose.yml -f docker-compose.pgsql.yml -f docker-compose.dev.yml up -d
 ```
 
 ### MySQL を使用する場合
 
 ```
-docker-compose -f docker-compose.yml -f docker-compose.mysql.yml -f docker-compose.dev.yml up -d
+docker compose -f docker-compose.yml -f docker-compose.mysql.yml -f docker-compose.dev.yml up -d
 ```
 
 ## サンプルモジュールについて
@@ -85,6 +85,22 @@ docker-compose -f docker-compose.yml -f docker-compose.mysql.yml -f docker-compo
 Docker コンテナ起動時に任意のSQLを実行したい場合は、 [dockerbuild/sql/setup.sql](./dockerbuild/sql/setup.sql) を編集してください。
 
 また [docker-compose.dev.yml](./docker-compose.dev.yml) の `entrypoint` を修正することで、起動時にスクリプトを実行できます。
+
+## 注意事項
+
+macOS で 2.17.x のイメージを起動しようとすると、以下のようなエラーと共に ec-cube が終了してしまう場合があります。
+
+``` shell
+2025-01-14 17:12:40 chmod: changing permissions of './data/downloads/module/mdl_sample/.git/objects/pack/pack-6b6337a08a08029be8ca5dae134eb542dd6aeba1.rev': Permission denied
+2025-01-14 17:12:40 chmod: changing permissions of './data/downloads/module/mdl_sample/.git/objects/pack/pack-6b6337a08a08029be8ca5dae134eb542dd6aeba1.pack': Permission denied
+2025-01-14 17:12:40 chmod: changing permissions of './data/downloads/module/mdl_sample/.git/objects/pack/pack-6b6337a08a08029be8ca5dae134eb542dd6aeba1.idx': Permission denied
+```
+
+どうも、マウントしたディレクトリの中の .git のパーミッションを変更しようとした場合にエラーになるようです。
+
+このようなエラーに遭遇した場合は、以下の PR を適用してみてください。
+
+https://github.com/nanasess/ec-cube2_mdl_sample/pull/2
 
 ## See Also
 
