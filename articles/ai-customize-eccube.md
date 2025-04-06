@@ -633,7 +633,7 @@ act モードに切り替えて修正もしてくれました。
 Docker は既に起動していますので、手動で確認してみます。
 
 
-![](/images/ai-customize-eccube/2.png)
+![](/images/ai-customize-eccube/3.png)
 
 税別価格になっていたり、SC_Query の使い方が雑だったりと多少のつっこみどころはありますが、指示内容を改善していけば、十分使えそうですね!
 
