@@ -313,27 +313,21 @@ EC-CUBEは、日本の商習慣に特化したOSSのイーコマースパッケ�
 
 事前に以下のコマンドを実行してください
 
-```
 docker compose -f docker-compose.yml -f docker-compose.mysql.yml -f docke
 r-compose.dev.yml exec ec-cube composer install
-```
 
 ## ユニットテスト
 
 以下のコマンドを実行してください
 
-```
 docker compose -f docker-compose.yml -f docker-compose.mysql.yml -f docke
 r-compose.dev.yml exec ec-cube data/vendor/bin/phpunit
-```
 
 ## E2Eテスト
 
 以下のコマンドを実行してください
 
-```
 yarn test:e2e
-```
 
 ```
 
