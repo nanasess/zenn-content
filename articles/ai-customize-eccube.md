@@ -60,7 +60,7 @@ Approve をクリックして、SC_CheckError を確認してもらいます。
 
 > SC_CheckError.phpファイルを確認しました。パスワードの要件はPASSWORD_CHAR_CHECKメソッドで定義されています。このメソッドでは、以下の正規表現パターンを使用してパスワードをチェックしています：
 >
-> ```
+> ```diff php
 > $pattern = '/\A(?=.*?[a-z])(?=.*?\d)[!-~]{'.PASSWORD_MIN_LEN.','.PASSWORD_MAX_LEN.'}+\z/i';
 > ```
 
