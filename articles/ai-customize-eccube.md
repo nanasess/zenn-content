@@ -313,27 +313,21 @@ EC-CUBEは、日本の商習慣に特化したOSSのイーコマースパッケ�
 
 事前に以下のコマンドを実行してください
 
-```
 docker compose -f docker-compose.yml -f docker-compose.mysql.yml -f docke
 r-compose.dev.yml exec ec-cube composer install
-```
 
 ## ユニットテスト
 
 以下のコマンドを実行してください
 
-```
 docker compose -f docker-compose.yml -f docker-compose.mysql.yml -f docke
 r-compose.dev.yml exec ec-cube data/vendor/bin/phpunit
-```
 
 ## E2Eテスト
 
 以下のコマンドを実行してください
 
-```
 yarn test:e2e
-```
 
 ```
 
@@ -633,7 +627,7 @@ act モードに切り替えて修正もしてくれました。
 Docker は既に起動していますので、手動で確認してみます。
 
 
-![](/images/ai-customize-eccube/2.png)
+![](/images/ai-customize-eccube/3.png)
 
 税別価格になっていたり、SC_Query の使い方が雑だったりと多少のつっこみどころはありますが、指示内容を改善していけば、十分使えそうですね!
 
