@@ -3,7 +3,7 @@ title: "AIに命令してどこまでEC-CUBEをカスタマイズできるか? |
 emoji: "🙆"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["eccube","Cline"]
-published: false
+published: true
 ---
 *この記事は「【初心者向け】AIに命令してどこまでEC-CUBEをカスタマイズできるか? | EC-CUBE名古屋 vol.113」の登壇資料です*
 
