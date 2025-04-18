@@ -313,27 +313,21 @@ EC-CUBEは、日本の商習慣に特化したOSSのイーコマースパッケ�
 
 事前に以下のコマンドを実行してください
 
-```
 docker compose -f docker-compose.yml -f docker-compose.mysql.yml -f docke
 r-compose.dev.yml exec ec-cube composer install
-```
 
 ## ユニットテスト
 
 以下のコマンドを実行してください
 
-```
 docker compose -f docker-compose.yml -f docker-compose.mysql.yml -f docke
 r-compose.dev.yml exec ec-cube data/vendor/bin/phpunit
-```
 
 ## E2Eテスト
 
 以下のコマンドを実行してください
 
-```
 yarn test:e2e
-```
 
 ```
 
@@ -633,7 +627,7 @@ act モードに切り替えて修正もしてくれました。
 Docker は既に起動していますので、手動で確認してみます。
 
 
-![](/images/ai-customize-eccube/2.png)
+![](/images/ai-customize-eccube/3.png)
 
 税別価格になっていたり、SC_Query の使い方が雑だったりと多少のつっこみどころはありますが、指示内容を改善していけば、十分使えそうですね!
 
@@ -644,6 +638,7 @@ Docker は既に起動していますので、手動で確認してみます。
 - 要件定義大切。詳細な要件定義をすることで、実運用に耐える性能も発揮してくれそう。
 - テストコードまでは書いてくれるけれど、最終の動作確認は人類なのは変わらない。 ** 人類も鍛錬を怠ってはならぬ。**
 - 繰替えすけど、要件定義能力とテスト能力が人類に問われる
+- コードリーディング能力や、簡単なコーディング能力は大半の人類を越えている
 - テーブル定義書などの仕様書を Markdown などのテキスト形式にするのは重要。AIフレンドリーなドキュメント作成をすれば、作業も捗ります。
 - お金をかければ十分使えそう。要件定義能力とテスト能力のある人類の人件費を考えると、コストダウンにつながるかどうかは未知数
 
