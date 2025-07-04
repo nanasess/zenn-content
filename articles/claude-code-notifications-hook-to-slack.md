@@ -5,6 +5,10 @@ type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["slack", "claude code"]
 published: true
 ---
+python とか node を使わず shell のワンライナーで送信する方法です。
+`jq` や `curl` は使えるようにしておいてください。
+
+
 1. 以下を参考に incoming webhooks の設定をして webhook の URL をコピーする
 https://api.slack.com/messaging/webhooks
 
