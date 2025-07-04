@@ -34,5 +34,9 @@ https://api.slack.com/messaging/webhooks
 }
 ```
 
+:::message alert
+`Stop` や `SubagentStop` の中で `claude` コマンドをコールすると、hook が無限ループしてしまいます。 `gemini` など、他の LLM cli を使用すると良いでしょう。
+:::
+
 - `CLAUDE_CONFIG_DIR` を設定している方はファイルパスを読み替えてください
 - *webhook の URL は実際のものに置き換えてください*
