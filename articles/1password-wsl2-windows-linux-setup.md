@@ -230,9 +230,85 @@ op account list
 
 1Password for Linux の **設定 → 開発者 → CLI との連携** が有効になっているか確認してください。
 
+## gh コマンドの承認プロンプトを回避する
+
+1Password Shell Plugins を使用すると、`gh` コマンドを実行するたびに承認プロンプト（リッチ認証ダイアログ）が表示されます。これはセキュリティ上の仕様ですが、頻繁に `gh` コマンドを使用する場合は煩わしく感じることがあります。
+
+承認プロンプトを回避したい場合は、Shell Plugins の代わりに **1Password Environments** を使用して `GITHUB_TOKEN` 環境変数を設定する方法があります。
+
+### 1. Shell Plugins を無効化
+
+```bash:~/.zshrc
+# 1Password Shell Plugins (disabled - using 1Password Environments instead)
+# [[ -f ~/.config/op/plugins.sh ]] && source ~/.config/op/plugins.sh
+```
+
+### 2. Shell Plugins のシンボリックリンクを削除
+
+Shell Plugins は `~/bin/gh` にシンボリックリンクを作成している場合があります。これが残っていると Shell Plugins 経由の認証が使われてしまいます。
+
+```bash
+# シンボリックリンクの確認
+ls -la ~/bin/gh
+
+# シンボリックリンクの削除
+rm ~/bin/gh
+```
+
+### 3. 1Password Environments で GITHUB_TOKEN を設定
+
+1. 1Password for Linux を開く
+2. **設定 → 開発者 → Environments** を開く
+3. 環境を選択（または新規作成）
+4. **Variables** タブで「Add Variable」をクリック
+5. 名前: `GITHUB_TOKEN`、値: 1Password に保存した GitHub Personal Access Token を選択
+6. **Destinations** タブで「Local .env file」を選択し、パスを指定（例: `~/.zsh/.env.local`）
+7. 「Mount .env file」をクリック
+
+### 4. シェルで .env.local を読み込む
+
+```bash:~/.zshenv
+# 1Password Environments から秘匿情報を読み込む
+if [[ -f "$ZDOTDIR/.env.local" ]]; then
+  set -a
+  source "$ZDOTDIR/.env.local"
+  set +a
+fi
+```
+
+:::message
+1Password Environments の Local .env file は UNIX 名前付きパイプ（FIFO）として提供されるため、プレーンテキストがディスクに保存されることはありません。
+:::
+
+### 5. Git credential helper を変更
+
+```ini:~/.gitconfig
+[credential "https://github.com"]
+    helper = !gh auth git-credential
+
+[credential "https://gist.github.com"]
+    helper = !gh auth git-credential
+```
+
+### 6. 動作確認
+
+```bash
+# 新しいシェルを開いて確認
+gh auth status
+```
+
+### 構成の比較
+
+| 項目 | Shell Plugins | 1Password Environments |
+|------|--------------|----------------------|
+| 承認プロンプト | 毎回表示 | なし |
+| トークン管理 | 1Password（都度取得） | 1Password（環境変数経由） |
+| セキュリティ | 高（都度承認） | 中（起動時に読み込み） |
+
 ## 参考リンク
 
 - [1Password SSH Agent](https://developer.1password.com/docs/ssh/)
 - [1Password CLI](https://developer.1password.com/docs/cli/)
 - [1Password Shell Plugins](https://developer.1password.com/docs/cli/shell-plugins/)
+- [1Password Environments](https://developer.1password.com/docs/environments/)
 - [Git Commit Signing with SSH Keys - GitHub Docs](https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification#ssh-commit-signature-verification)
