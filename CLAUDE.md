@@ -85,3 +85,8 @@ published: true
 - 記事の公開状態は front matter の `published` フラグで制御
 - 画像ファイルは必ず `/images/記事名/` ディレクトリに配置
 - EC-CUBE 関連の記事が多いため、PHP や Symfony フレームワークの知識があると理解しやすい
+- Claude Code で記事を執筆した場合は、記事の冒頭（front matter の直後）に以下の注意書きを追加すること：
+  ```markdown
+  :::message
+  この記事は Claude Code で執筆しています。
+  :::
