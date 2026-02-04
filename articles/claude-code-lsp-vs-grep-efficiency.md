@@ -6,6 +6,10 @@ topics: ["claude code", "LSP", "phpactor", "PHP"]
 published: true
 ---
 
+:::message
+この記事は Claude Code で執筆しています。
+:::
+
 ## はじめに
 
 Claude Code でコードベースを調査する際、LSP（Language Server Protocol）を使った方が正確で効率的なのでは？と思い、実際に比較してみました。
