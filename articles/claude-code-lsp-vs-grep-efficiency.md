@@ -2,7 +2,7 @@
 title: "Claude Code で LSP(phpactor) と Grep 検索の効率を比較してみた"
 emoji: "🔍"
 type: "tech" # tech: 技術記事 / idea: アイデア
-topics: ["claude code", "LSP", "phpactor", "PHP"]
+topics: ["claudecode", "LSP", "phpactor", "PHP"]
 published: true
 ---
 
