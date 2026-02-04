@@ -30,7 +30,7 @@ Claude Code でコードベースを調査する際、LSP（Language Server Prot
 
 ## Grep 検索（LSP なし）の場合
 
-Claude Code の Explore エージェントが内部で Grep/Glob を使って調査しました。
+Claude Code の `Explore` エージェントが内部で Grep/Glob を使って調査しました。
 
 **プロセス:**
 - ツール呼び出し: Explore エージェント 1回（内部で Grep/Glob を約13回）
