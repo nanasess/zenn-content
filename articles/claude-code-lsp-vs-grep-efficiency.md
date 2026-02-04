@@ -18,7 +18,7 @@ Claude Code でコードベースを調査する際、LSP（Language Server Prot
 
 ## 調査対象: ItemHolderInterface
 
-`ItemHolderInterface` は、カートや注文などの「商品を保持するコンテナ」の契約を定義するインターフェースです。PurchaseFlow パイプラインで Cart と Order を多態的に扱うための抽象化として使われています。
+`ItemHolderInterface` は、カートや注文などの「商品を保持するコンテナ」の契約を定義するインターフェースです。`PurchaseFlow` パイプラインで Cart と Order を多態的に扱うための抽象化として使われています。
 
 主なメソッド:
 - `getItems()` - ItemCollection を返す
