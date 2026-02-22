@@ -19,6 +19,7 @@ WSL2 環境で 1Password for Windows と 1Password for Linux を併用し、Git 
 | Git コミット署名 | 1Password for Windows | Windows Hello（生体認証） |
 | SSH 接続 (WSL2) | 1Password for Linux | 1Password アプリ認証 |
 | GitHub CLI / Git credential | 1Password CLI (Linux) | 1Password for Linux 連携 |
+| 1Password CLI 認証 (WSL2) | 1Password for Windows (`op.exe`) | Windows Hello（2026年2月22日追記） |
 
 ### この構成のメリット
 
@@ -79,6 +80,10 @@ npiperelay などの中継ツールは使用しません。それぞれの 1Pass
 | SSH エージェント | 有効 |
 | CLI との連携 | **無効** |
 
+:::message
+**2026年2月22日追記**: `op` CLI を WSL2 から Windows Hello で認証したい場合は、CLI との連携を **有効** に変更してください。詳細は「[1Password CLI を Windows Hello で認証する（WSL2）](#1password-cli-を-windows-hello-で認証する（wsl2）)」を参照してください。
+:::
+
 **設定 → セキュリティ** で以下を設定:
 
 | 項目 | 設定値 |
@@ -93,6 +98,10 @@ npiperelay などの中継ツールは使用しません。それぞれの 1Pass
 |------|--------|
 | SSH エージェント | 有効 |
 | CLI との連携 | **有効** |
+
+:::message
+**2026年2月22日追記**: `op` CLI を WSL2 から Windows Hello で認証する場合は、CLI との連携を **無効** に変更してください。Windows 側の `op.exe` に転送するため、Linux 側の CLI 連携は不要になります。詳細は「[1Password CLI を Windows Hello で認証する（WSL2）](#1password-cli-を-windows-hello-で認証する（wsl2）)」を参照してください。
+:::
 
 SSH Agent を有効にすると、`~/.1password/agent.sock` が自動的に作成されます。
 
@@ -305,6 +314,122 @@ gh auth status
 | トークン管理 | 1Password（都度取得） | 1Password（環境変数経由） |
 | セキュリティ | 高（都度承認） | 中（起動時に読み込み） |
 
+## 1Password CLI を Windows Hello で認証する（WSL2）
+
+:::message
+**2026年2月22日追記**
+:::
+
+### 背景
+
+WSL2 環境で Linux 版の `op` コマンドを使用すると、認証時に PolKit（Linux のシステム認証フレームワーク）が呼び出されます。しかし、WSL2 では PolKit が正常に動作しないため、Windows Hello による生体認証を利用できません。
+
+### 解決策
+
+Windows 側にインストールされている `op.exe` にコマンドを転送するラッパースクリプトを作成します。これにより、`op` コマンドの実行時に Windows Hello で認証できるようになります。
+
+### 1Password の設定変更
+
+この方法を使用する場合、既存の設定から以下を変更します。
+
+**1Password for Windows（設定 → 開発者）**:
+
+| 項目 | 変更前 | 変更後 |
+|------|--------|--------|
+| CLI との連携 | 無効 | **有効** |
+
+**1Password for Linux（設定 → 開発者）**:
+
+| 項目 | 変更前 | 変更後 |
+|------|--------|--------|
+| CLI との連携 | 有効 | **無効** |
+
+:::message alert
+SSH エージェントの設定は変更不要です。Linux 側の SSH Agent は引き続き有効のままで問題ありません。
+:::
+
+### ラッパースクリプトの作成
+
+以下のスクリプトを `~/.local/bin/op` に配置します。
+
+```bash:~/.local/bin/op
+#!/bin/bash
+OP_EXE="/mnt/c/Users/<YOUR_USERNAME>/AppData/Local/Microsoft/WinGet/Links/op.exe"
+
+if [ ! -f "$OP_EXE" ]; then
+  echo "[ERROR] op.exe not found at $OP_EXE" >&2
+  exit 1
+fi
+
+OP_VARS=$(env | grep ^OP_ | cut -d= -f1 | tr '\n' ':')
+export WSLENV="${WSLENV:-}:${OP_VARS%:}"
+exec "$OP_EXE" "$@"
+```
+
+:::message alert
+`<YOUR_USERNAME>` を実際の Windows ユーザー名に置き換えてください。`op.exe` のパスは環境によって異なる場合があります。`which op.exe` や `where.exe op` で確認できます。
+:::
+
+```bash
+# 実行権限を付与
+chmod +x ~/.local/bin/op
+```
+
+`~/.local/bin` がパスに含まれていることを確認してください。
+
+```bash:~/.zshrc
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+#### スクリプトの解説
+
+- **`OP_VARS`**: `OP_` で始まる環境変数名を収集し、コロン区切りの文字列にします
+- **`WSLENV`**: WSL と Windows 間で共有する環境変数を指定する[特殊な環境変数](https://devblogs.microsoft.com/commandline/share-environment-vars-between-wsl-and-windows/)です。`OP_SERVICE_ACCOUNT_TOKEN` などの 1Password 環境変数を `op.exe` に渡すために設定します
+- **`exec`**: 現在のシェルプロセスを `op.exe` に置き換えて実行します
+
+### Home Manager で管理する（オプション）
+
+Nix Home Manager を使用している場合は、`home.nix` で宣言的に管理できます。
+
+```nix:~/.config/home-manager/home.nix
+  home.file.".local/bin/op" = lib.mkIf pkgs.stdenv.isLinux {
+    executable = true;
+    text = ''
+      #!/bin/bash
+      OP_EXE="/mnt/c/Users/${config.home.username}/AppData/Local/Microsoft/WinGet/Links/op.exe"
+
+      if [ ! -f "$OP_EXE" ]; then
+        echo "[ERROR] op.exe not found at $OP_EXE" >&2
+        exit 1
+      fi
+
+      OP_VARS=$(env | grep ^OP_ | cut -d= -f1 | tr '\n' ':')
+      export WSLENV="''${WSLENV:-}:''${OP_VARS%:}"
+      exec "$OP_EXE" "$@"
+    '';
+  };
+```
+
+:::message
+Nix の文字列内では `${...}` が Nix の変数展開として解釈されるため、シェル変数は `''${...}` でエスケープする必要があります。一方、`${config.home.username}` は Nix 側で展開されるため、エスケープ不要です。
+:::
+
+適用するには以下を実行します。
+
+```bash
+home-manager switch --flake "$HOME/.config/home-manager#<YOUR_CONFIG_NAME>"
+```
+
+既に `~/.local/bin/op` が存在する場合は `-b backup` フラグを追加してください。
+
+### 動作確認
+
+```bash
+op whoami
+```
+
+Windows Hello の認証ダイアログが表示され、認証後にアカウント情報が表示されれば成功です。
+
 ## 参考リンク
 
 - [1Password SSH Agent](https://developer.1password.com/docs/ssh/)
@@ -312,3 +437,4 @@ gh auth status
 - [1Password Shell Plugins](https://developer.1password.com/docs/cli/shell-plugins/)
 - [1Password Environments](https://developer.1password.com/docs/environments/)
 - [Git Commit Signing with SSH Keys - GitHub Docs](https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification#ssh-commit-signature-verification)
+- [1Password CLI WSL Integration](https://github.com/Swage590/1Password-CLI-WSL-Integration) - WSL2 から Windows の `op.exe` に転送するラッパースクリプトの参考実装
