@@ -31,8 +31,8 @@ https://github.com/skirnir-dev/hosting-service-terraform-template
 
 #### Terraform
 
-- Terraform の backend は Terraform Cloud
-- APIキーなどのクレデンシャル情報は Terraform Cloud で管理
+- Terraform の backend は Terraform Cloud(Azure Backend へ移行中)
+- APIキーなどのクレデンシャル情報は Terraform Cloud で管理(1Password へ移行中)
 - Azure の認証は Dynamic Provider Credentials を利用
 - GitHub と連携して VCS Workflow を利用
     - Pull Request で `terraform plan` を実行
@@ -55,12 +55,18 @@ https://www.ansible.com/
 
 ## 連携サービス
 
+### (2026-03-06 追記) 1Password
+
+https://zenn.dev/nanasess/articles/terraform-cloud-to-github-actions-azure-migration
+
+できるかぎり秘匿情報は 1Password で一元管理
+
 ### SendGrid
 
 - メール送信はこれ一択
 - Pro100k プランを利用して、Teammates で各アカウントを管理
 - メルマガ配信にも利用いただいている
-- APIキーは Terraform で管理
+- APIキーは Terraform で管理(1Password へ移行中)
 
 https://sendgrid.kke.co.jp/
 
