@@ -73,6 +73,36 @@ AIの進化に伴い、より高度な実装が期待できるはず...！
 | 10 | Aの商品をカートに入れたらBが割引 | [cross-product-discount](https://github.com/nanasess/ec-cube/tree/cross-product-discount) | **確認済** |
 | 11 | 名入れ機能 | [naire-engraving](https://github.com/nanasess/ec-cube/tree/naire-engraving) | 未確認 |
 
+### 動作確認手順
+
+各ブランチを clone & checkout することで動作確認できます。
+
+```bash
+# リポジトリをクローン（例: サジェスト機能）
+git clone -b suggest-feature https://github.com/nanasess/ec-cube.git ec-cube-suggest
+cd ec-cube-suggest
+
+# 依存パッケージのインストール
+composer install
+
+# EC-CUBEのインストール（対話なし）
+bin/console eccube:install -n
+
+# マイグレーションが必要なブランチの場合（お題 4,5,6,8,9,10,11）
+bin/console eccube:generate:proxies    # Entity Trait を使用するブランチのみ
+bin/console doctrine:migrations:migrate --no-interaction
+bin/console cache:clear
+
+# ビルトインサーバーで起動
+php -S 127.0.0.1:8080
+```
+
+:::message
+マイグレーションが必要なブランチ: `referral-coupon`, `out-of-stock-type`, `private-product`, `sales-report`, `sale-price`, `cross-product-discount`, `naire-engraving`
+
+プロキシ再生成（`eccube:generate:proxies`）が必要なブランチ: `out-of-stock-type`, `sale-price`, `naire-engraving`
+:::
+
 ## 動作確認できたお題
 
 ### お題1: フロント画面のサジェスト機能
