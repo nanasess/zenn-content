@@ -59,19 +59,19 @@ AIの進化に伴い、より高度な実装が期待できるはず...！
 
 参加者から集まった11個のお題です。
 
-| # | お題 | worktree | 動作確認 |
+| # | お題 | ブランチ | 動作確認 |
 |---|---|---|---|
-| 1 | フロント画面のサジェスト機能 | `suggest-feature` | **確認済** |
-| 2 | ユーザーの位置情報(都道府県)を表示 | `geolocation` | 未確認 |
-| 3 | 管理画面の商品検索に在庫数量を追加 | `stock-search` | 未確認 |
-| 4 | 紹介クーポン機能 | `referral-coupon` | 未確認 |
-| 5 | 品切れ表示を欠品と廃盤に分離 | `out-of-stock-type` | **確認済** |
-| 6 | 特定のお客様専用URLの商品ページ | `private-product` | **確認済** |
-| 7 | 受注リストを注文番号でソート | `order-sort` | **確認済** |
-| 8 | 売上集計を発送日基準にする | `sales-report` | 未確認 |
-| 9 | セール価格の期間限定価格設定 | `sale-price` | エラーあり |
-| 10 | Aの商品をカートに入れたらBが割引 | `cross-product-discount` | **確認済** |
-| 11 | 名入れ機能 | `naire-engraving` | 未確認 |
+| 1 | フロント画面のサジェスト機能 | [suggest-feature](https://github.com/nanasess/ec-cube/tree/suggest-feature) | **確認済** |
+| 2 | ユーザーの位置情報(都道府県)を表示 | [geolocation](https://github.com/nanasess/ec-cube/tree/geolocation) | 未確認 |
+| 3 | 管理画面の商品検索に在庫数量を追加 | [stock-search](https://github.com/nanasess/ec-cube/tree/stock-search) | 未確認 |
+| 4 | 紹介クーポン機能 | [referral-coupon](https://github.com/nanasess/ec-cube/tree/referral-coupon) | 未確認 |
+| 5 | 品切れ表示を欠品と廃盤に分離 | [out-of-stock-type](https://github.com/nanasess/ec-cube/tree/out-of-stock-type) | **確認済** |
+| 6 | 特定のお客様専用URLの商品ページ | [private-product](https://github.com/nanasess/ec-cube/tree/private-product) | **確認済** |
+| 7 | 受注リストを注文番号でソート | [order-sort](https://github.com/nanasess/ec-cube/tree/order-sort) | **確認済** |
+| 8 | 売上集計を発送日基準にする | [sales-report](https://github.com/nanasess/ec-cube/tree/sales-report) | 未確認 |
+| 9 | セール価格の期間限定価格設定 | [sale-price](https://github.com/nanasess/ec-cube/tree/sale-price) | エラーあり |
+| 10 | Aの商品をカートに入れたらBが割引 | [cross-product-discount](https://github.com/nanasess/ec-cube/tree/cross-product-discount) | **確認済** |
+| 11 | 名入れ機能 | [naire-engraving](https://github.com/nanasess/ec-cube/tree/naire-engraving) | 未確認 |
 
 ## 動作確認できたお題
 
