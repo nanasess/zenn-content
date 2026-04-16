@@ -150,12 +150,12 @@ WezTerm は **Windows 側で動作**しているため、Linux の `LOCPATH` や
 locale-eaw は WezTerm 用の設定ファイル `eaw-console-wezterm.lua` を生成しています。
 
 ```lua
--- wezterm.lua (Windows 側 C:\Users\nanasess\.wezterm.lua にコピーされる)
+-- wezterm.lua (Windows 側 C:\Users\<username>\.wezterm.lua にコピーされる)
 local wezterm = require("wezterm")
 local config = wezterm.config_builder()
 
 -- Windows 側のフォントディレクトリを指定 (JPDOC はここにコピー)
-config.font_dirs = { 'C:\\Users\\nanasess\\.local\\share\\fonts' }
+config.font_dirs = { 'C:\\Users\\<username>\\.local\\share\\fonts' }
 -- JPDOC をプライマリフォント、NF を Nerd Font 用フォールバック
 config.font = wezterm.font_with_fallback {
   'UDEV Gothic JPDOC',
