@@ -1,5 +1,5 @@
 ---
-title: "Monolog 1.x の RotatingFileHandler が php-fpm 下で古いログを消さない話（2.x / 3.x との挙動差）"
+title: "Monolog 1.x が php-fpm 下で古いログを消さない問題（2.x/3.x との挙動差）"
 emoji: "🗑️"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["monolog", "php", "symfony", "eccube", "logging"]
@@ -285,6 +285,7 @@ ls -1t var/log/prod/site-*.log | tail -n +61 | xargs -r rm -f
 
 # 恒久：cron（Web 実行ユーザーの crontab）で 60 日分（当日含む）を残して古いログを削除
 5 0 * * * find /path/to/var/log/prod -name 'site-*.log' -mtime +59 -delete
+```
 
 `find -mtime` は Monolog のバージョン・`__destruct`・`glob`・`fingers_crossed` のいずれにも依存しないため、確実に効きます。
 
