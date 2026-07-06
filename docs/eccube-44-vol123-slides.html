@@ -1,0 +1,878 @@
+<title>EC-CUBE 4.4 とAI時代のEC ― 店舗オーナー向け勉強会</title>
+<style>
+  :root {
+    /* --- palette: 「お店（緑）」と「AI（藍）」が出会う --- */
+    --ground:      #FBFAF5;   /* warm off-white, faint green bias */
+    --surface:     #FFFFFF;
+    --surface-2:   #F3F1E8;
+    --ink:         #16211B;   /* near-black, green bias */
+    --ink-soft:    #4A574F;
+    --ink-faint:   #7C8880;
+    --line:        #E2DFD2;
+    --line-strong: #CBC8B8;
+
+    --shop:        #1B9E5A;   /* EC-CUBE green = お店・人間 */
+    --shop-deep:   #0B6B3A;
+    --shop-tint:   #E7F4EC;
+
+    --ai:          #4257C9;   /* indigo = AI・エージェント */
+    --ai-bright:   #5D74E8;
+    --ai-tint:     #EAEDFB;
+
+    --amber:       #D98A16;   /* 強調・注意 */
+    --amber-tint:  #FBF0DA;
+
+    --good:        #1B9E5A;
+    --warn:        #D98A16;
+
+    --font-sans: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", "YuGothic", "Noto Sans JP", Meiryo, system-ui, sans-serif;
+    --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+
+    --maxw: 1080px;
+    --radius: 16px;
+    --shadow: 0 1px 2px rgba(22,33,27,.05), 0 12px 32px -12px rgba(22,33,27,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground:      #0E1411;
+      --surface:     #161E19;
+      --surface-2:   #1E2823;
+      --ink:         #EDF1EC;
+      --ink-soft:    #AEBAB2;
+      --ink-faint:   #78857D;
+      --line:        #27322C;
+      --line-strong: #35433B;
+      --shop:        #37BE74;
+      --shop-deep:   #9BE3B8;
+      --shop-tint:   #12281C;
+      --ai:          #7C90F2;
+      --ai-bright:   #93A4F7;
+      --ai-tint:     #171E33;
+      --amber:       #E6A63F;
+      --amber-tint:  #2A2110;
+      --line-strong: #35433B;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 16px 40px -16px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:#0E1411; --surface:#161E19; --surface-2:#1E2823; --ink:#EDF1EC;
+    --ink-soft:#AEBAB2; --ink-faint:#78857D; --line:#27322C; --line-strong:#35433B;
+    --shop:#37BE74; --shop-deep:#9BE3B8; --shop-tint:#12281C;
+    --ai:#7C90F2; --ai-bright:#93A4F7; --ai-tint:#171E33;
+    --amber:#E6A63F; --amber-tint:#2A2110;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 16px 40px -16px rgba(0,0,0,.6);
+  }
+  :root[data-theme="light"] {
+    --ground:#FBFAF5; --surface:#FFFFFF; --surface-2:#F3F1E8; --ink:#16211B;
+    --ink-soft:#4A574F; --ink-faint:#7C8880; --line:#E2DFD2; --line-strong:#CBC8B8;
+    --shop:#1B9E5A; --shop-deep:#0B6B3A; --shop-tint:#E7F4EC;
+    --ai:#4257C9; --ai-bright:#5D74E8; --ai-tint:#EAEDFB;
+    --amber:#D98A16; --amber-tint:#FBF0DA;
+    --shadow: 0 1px 2px rgba(22,33,27,.05), 0 12px 32px -12px rgba(22,33,27,.18);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    color: var(--ink);
+    background: var(--ground);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* ---------- deck / slide scaffolding ---------- */
+  .deck {
+    height: 100vh;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+  }
+  @media (prefers-reduced-motion: reduce) { .deck { scroll-behavior: auto; } }
+
+  .slide {
+    scroll-snap-align: start;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: clamp(28px, 6vh, 72px) clamp(20px, 5vw, 64px) clamp(72px, 10vh, 100px);
+    position: relative;
+    border-bottom: 1px solid var(--line);
+  }
+  .slide__inner { width: 100%; max-width: var(--maxw); margin: 0 auto; }
+
+  /* slide number tab */
+  .slide::before {
+    content: attr(data-no) " / " attr(data-total);
+    position: absolute;
+    top: clamp(18px, 3.5vh, 34px);
+    right: clamp(20px, 5vw, 64px);
+    font-family: var(--font-mono);
+    font-size: .72rem;
+    letter-spacing: .08em;
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- typography ---------- */
+  h1, h2, h3 { margin: 0; text-wrap: balance; line-height: 1.22; letter-spacing: -.01em; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: .5em;
+    font-size: .78rem; font-weight: 700; letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--shop-deep);
+    margin-bottom: 1.1rem;
+  }
+  .eyebrow--ai { color: var(--ai); }
+  .eyebrow::before {
+    content: ""; width: 26px; height: 2px; background: currentColor; border-radius: 2px;
+  }
+  h2.title { font-size: clamp(1.7rem, 4.4vw, 3rem); font-weight: 800; }
+  h3.subhead { font-size: clamp(1.15rem, 2.4vw, 1.6rem); font-weight: 700; margin-top: .6rem; color: var(--ink-soft); }
+  .lead { font-size: clamp(1.02rem, 1.7vw, 1.28rem); color: var(--ink-soft); margin-top: 1.2rem; max-width: 62ch; }
+  p { margin: 0 0 1rem; }
+  strong { font-weight: 700; }
+  .hl { background: linear-gradient(transparent 62%, var(--amber-tint) 62%); font-weight: 700; padding: 0 .1em; }
+  .kw-shop { color: var(--shop-deep); font-weight: 700; }
+  .kw-ai { color: var(--ai); font-weight: 700; }
+
+  /* ---------- title slide ---------- */
+  .cover { background:
+      radial-gradient(120% 90% at 12% 0%, var(--shop-tint) 0%, transparent 55%),
+      radial-gradient(120% 90% at 100% 100%, var(--ai-tint) 0%, transparent 55%),
+      var(--ground);
+  }
+  .cover__kicker {
+    font-family: var(--font-mono); font-size: .8rem; letter-spacing: .14em;
+    color: var(--ink-faint); text-transform: uppercase; margin-bottom: 1.6rem;
+  }
+  .cover h1 {
+    font-size: clamp(2.1rem, 6.6vw, 4.4rem); font-weight: 800; letter-spacing: -.02em;
+  }
+  .cover h1 .accent { color: var(--shop); }
+  .cover h1 .accent2 { color: var(--ai); }
+  .cover__sub { font-size: clamp(1.05rem, 2.2vw, 1.5rem); color: var(--ink-soft); margin-top: 1.4rem; font-weight: 500; }
+  .cover__meta {
+    margin-top: 2.6rem; display: flex; flex-wrap: wrap; gap: .6rem 1.4rem;
+    font-size: .92rem; color: var(--ink-soft);
+  }
+  .cover__meta span { display: inline-flex; align-items: center; gap: .45em; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--shop); display: inline-block; }
+  .dot--ai { background: var(--ai); }
+
+  /* ---------- profile / self-intro ---------- */
+  .profile { display: grid; grid-template-columns: auto 1fr; gap: clamp(20px, 4vw, 44px); align-items: center; margin-top: 1.8rem; }
+  @media (max-width: 720px) { .profile { grid-template-columns: 1fr; text-align: center; justify-items: center; } }
+  .avatar {
+    width: clamp(120px, 20vw, 180px); height: clamp(120px, 20vw, 180px); border-radius: 28px;
+    display: grid; place-items: center; font-size: clamp(3.4rem, 8vw, 5rem);
+    background: linear-gradient(150deg, var(--shop-tint), var(--ai-tint));
+    border: 1px solid var(--line); box-shadow: var(--shadow);
+  }
+  .profile__name { font-size: clamp(1.5rem, 3.4vw, 2.2rem); font-weight: 800; letter-spacing: -.01em; }
+  .profile__handle { font-family: var(--font-mono); color: var(--ai); font-weight: 700; font-size: 1rem; }
+  .profile__rows { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px 18px; margin-top: 1.2rem; }
+  @media (max-width: 720px) { .profile__rows { grid-template-columns: 1fr; text-align: left; width: 100%; } }
+  .prow { display: flex; gap: 10px; align-items: baseline; }
+  .prow .k { flex: none; font-size: .78rem; font-weight: 700; letter-spacing: .05em; color: var(--ink-faint);
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 7px; padding: 2px 8px; }
+  .prow .v { color: var(--ink); font-size: .98rem; }
+  .profile__role { margin-top: 1.4rem; padding: 14px 18px; border-radius: var(--radius);
+    background: var(--shop-tint); border: 1px solid color-mix(in srgb, var(--shop) 30%, transparent);
+    font-weight: 700; color: var(--shop-deep); display: flex; gap: 10px; align-items: center; }
+
+  /* ---------- cards / grids ---------- */
+  .grid { display: grid; gap: clamp(12px, 1.6vw, 20px); }
+  .g2 { grid-template-columns: repeat(2, 1fr); }
+  .g3 { grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 760px) { .g2, .g3 { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: clamp(16px, 2.2vw, 26px);
+    box-shadow: var(--shadow);
+  }
+  .card h4 { margin: 0 0 .5rem; font-size: 1.08rem; font-weight: 700; display: flex; align-items: center; gap: .55em; }
+  .card p { margin: 0; color: var(--ink-soft); font-size: .96rem; }
+  .card--shop { border-top: 3px solid var(--shop); }
+  .card--ai { border-top: 3px solid var(--ai); }
+  .card--amber { border-top: 3px solid var(--amber); }
+
+  .num-badge {
+    flex: none; width: 30px; height: 30px; border-radius: 9px;
+    display: grid; place-items: center; font-family: var(--font-mono);
+    font-weight: 700; font-size: .95rem; color: #fff; background: var(--shop);
+  }
+  .num-badge--ai { background: var(--ai); }
+  .num-badge--amber { background: var(--amber); }
+
+  .agenda-list { display: flex; flex-direction: column; gap: 14px; margin-top: 1.6rem; }
+  .agenda-item { display: flex; gap: 18px; align-items: flex-start; padding: 18px 20px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .agenda-item h4 { margin: 0 0 .2rem; font-size: 1.12rem; }
+  .agenda-item p { margin: 0; color: var(--ink-soft); font-size: .95rem; }
+
+  /* ---------- timetable ---------- */
+  .timetable { display: flex; flex-direction: column; gap: 8px; margin-top: 1.4rem; }
+  .tt-row { display: grid; grid-template-columns: 108px 1fr auto; gap: 14px; align-items: center;
+    padding: 12px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); }
+  .tt-row .time { font-family: var(--font-mono); font-weight: 700; font-size: .92rem; color: var(--ai); font-variant-numeric: tabular-nums; }
+  .tt-row .what { font-weight: 700; font-size: 1rem; }
+  .tt-row .what small { display: block; font-weight: 400; font-size: .82rem; color: var(--ink-faint); }
+  .tt-row .dur { font-family: var(--font-mono); font-size: .8rem; color: var(--ink-faint); }
+  .tt-row.brk { background: var(--surface-2); border-style: dashed; }
+  .tt-row.brk .time, .tt-row.brk .what { color: var(--ink-faint); font-weight: 600; }
+  @media (max-width: 620px) {
+    .tt-row { grid-template-columns: 84px 1fr; }
+    .tt-row .dur { display: none; }
+  }
+
+  /* ---------- flow diagram ---------- */
+  .flow { display: flex; align-items: stretch; gap: 10px; flex-wrap: wrap; margin-top: 1.8rem; }
+  .flow-node {
+    flex: 1 1 150px; min-width: 130px; background: var(--surface); border: 1.5px solid var(--line-strong);
+    border-radius: 14px; padding: 16px 14px; text-align: center; box-shadow: var(--shadow);
+    display: flex; flex-direction: column; gap: 6px; justify-content: center;
+  }
+  .flow-node .ic { font-size: 1.7rem; line-height: 1; }
+  .flow-node .nm { font-weight: 700; font-size: 1rem; }
+  .flow-node .ds { font-size: .8rem; color: var(--ink-faint); line-height: 1.4; }
+  .flow-node--shop { border-color: var(--shop); background: var(--shop-tint); }
+  .flow-node--ai { border-color: var(--ai); background: var(--ai-tint); }
+  .flow-arrow { display: flex; align-items: center; justify-content: center; color: var(--ink-faint); font-size: 1.5rem; flex: 0 0 auto; }
+  @media (max-width: 680px) {
+    .flow { flex-direction: column; }
+    .flow-arrow { transform: rotate(90deg); padding: 2px 0; }
+  }
+
+  /* ---------- before / after ---------- */
+  .ba { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 1.6rem; }
+  @media (max-width: 760px) { .ba { grid-template-columns: 1fr; } }
+  .ba-col { border-radius: var(--radius); padding: 22px; border: 1px solid var(--line); background: var(--surface); }
+  .ba-col.now { background: var(--surface-2); }
+  .ba-col.next { border-color: var(--ai); background: var(--ai-tint); }
+  .ba-tag { font-size: .74rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    padding: 3px 10px; border-radius: 999px; display: inline-block; margin-bottom: 12px; }
+  .ba-tag.now { background: var(--line-strong); color: var(--ink); }
+  .ba-tag.next { background: var(--ai); color: #fff; }
+  .ba-col ul { margin: 0; padding-left: 1.1em; }
+  .ba-col li { margin-bottom: .5rem; color: var(--ink-soft); }
+
+  /* ---------- comparison table ---------- */
+  .tbl-wrap { overflow-x: auto; margin-top: 1.6rem; border-radius: var(--radius); border: 1px solid var(--line); box-shadow: var(--shadow); }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; background: var(--surface); }
+  th, td { text-align: left; padding: 13px 16px; border-bottom: 1px solid var(--line); font-size: .95rem; vertical-align: top; }
+  thead th { background: var(--surface-2); font-weight: 700; font-size: .82rem; letter-spacing: .04em; }
+  tbody tr:last-child td { border-bottom: none; }
+  th.c-acp { color: var(--shop-deep); } th.c-ucp { color: var(--ai); }
+  .rowlabel { font-weight: 700; color: var(--ink); background: var(--surface-2); width: 26%; }
+
+  /* ---------- status pills ---------- */
+  .pill { display: inline-flex; align-items: center; gap: .4em; font-size: .74rem; font-weight: 700;
+    padding: 3px 9px; border-radius: 999px; letter-spacing: .02em; }
+  .pill.done { background: var(--shop-tint); color: var(--shop-deep); }
+  .pill.wip  { background: var(--amber-tint); color: var(--amber); }
+  .pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  /* ---------- callout ---------- */
+  .callout { display: flex; gap: 14px; padding: 18px 20px; border-radius: var(--radius);
+    background: var(--amber-tint); border: 1px solid color-mix(in srgb, var(--amber) 40%, transparent); margin-top: 1.6rem; }
+  .callout .ic { font-size: 1.4rem; flex: none; }
+  .callout p { margin: 0; font-size: .98rem; color: var(--ink); }
+  .callout--ai { background: var(--ai-tint); border-color: color-mix(in srgb, var(--ai) 35%, transparent); }
+
+  /* ---------- key-take ---------- */
+  .takeaways { display: flex; flex-direction: column; gap: 14px; margin-top: 1.8rem; }
+  .take { display: flex; gap: 16px; align-items: flex-start; padding: 20px 22px; border-radius: var(--radius);
+    background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); }
+  .take .n { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 700; color: var(--shop); line-height: 1; flex: none; }
+  .take h4 { margin: 0 0 .3rem; font-size: 1.14rem; }
+  .take p { margin: 0; color: var(--ink-soft); font-size: .96rem; }
+
+  .stat-row { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 1.6rem; }
+  .stat { flex: 1 1 150px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 18px 20px; box-shadow: var(--shadow); }
+  .stat .v { font-size: clamp(1.5rem, 3.4vw, 2.2rem); font-weight: 800; color: var(--shop); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+  .stat .v.ai { color: var(--ai); }
+  .stat .l { font-size: .86rem; color: var(--ink-soft); margin-top: .2rem; }
+
+  .mono-chip { font-family: var(--font-mono); font-size: .85em; background: var(--surface-2);
+    border: 1px solid var(--line); border-radius: 7px; padding: 1px 7px; color: var(--ink); }
+
+  /* ---------- MCP tool grid ---------- */
+  .toolgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 1.4rem; }
+  @media (max-width: 760px) { .toolgrid { grid-template-columns: repeat(2, 1fr); } }
+  .tool { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px;
+    text-align: center; box-shadow: var(--shadow); }
+  .tool .ic { font-size: 1.5rem; }
+  .tool .nm { font-weight: 700; font-size: .95rem; margin-top: 4px; }
+  .tool .ds { font-size: .78rem; color: var(--ink-faint); }
+
+  /* ---------- chat mock ---------- */
+  .chat { max-width: 640px; margin: 1.6rem auto 0; display: flex; flex-direction: column; gap: 12px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+  .chat__head { display: flex; align-items: center; gap: 8px; font-size: .8rem; color: var(--ink-faint);
+    border-bottom: 1px solid var(--line); padding-bottom: 10px; margin-bottom: 2px; font-family: var(--font-mono); }
+  .chat__head .d { width: 9px; height: 9px; border-radius: 50%; background: var(--line-strong); }
+  .bubble { max-width: 82%; padding: 11px 15px; border-radius: 16px; font-size: .96rem; line-height: 1.55; }
+  .bubble.me { align-self: flex-end; background: var(--ai); color: #fff; border-bottom-right-radius: 5px; }
+  .bubble.ai { align-self: flex-start; background: var(--surface-2); color: var(--ink); border-bottom-left-radius: 5px; border: 1px solid var(--line); }
+  .bubble.ai .tool { display: inline-flex; align-items: center; gap: .4em; font-family: var(--font-mono); font-size: .74rem;
+    color: var(--shop-deep); background: var(--shop-tint); border-radius: 6px; padding: 1px 7px; margin-bottom: 6px; }
+
+  /* ---------- discussion prompts ---------- */
+  .qcards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 1.6rem; }
+  @media (max-width: 760px) { .qcards { grid-template-columns: 1fr; } }
+  .qcard { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--ai);
+    border-radius: 12px; padding: 18px 20px; box-shadow: var(--shadow); }
+  .qcard .q { font-size: .78rem; font-family: var(--font-mono); color: var(--ai); font-weight: 700; }
+  .qcard p { margin: .4rem 0 0; font-weight: 700; font-size: 1.04rem; }
+
+  /* ---------- navigation UI ---------- */
+  .progress { position: fixed; top: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--shop), var(--ai));
+    width: 0%; z-index: 60; transition: width .2s ease; }
+  .navbar { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 6px; z-index: 60;
+    background: color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter: blur(10px);
+    border: 1px solid var(--line); border-radius: 999px; padding: 6px 8px; box-shadow: var(--shadow); }
+  .navbar button { border: none; background: transparent; color: var(--ink); cursor: pointer;
+    width: 34px; height: 34px; border-radius: 50%; font-size: 1rem; display: grid; place-items: center; }
+  .navbar button:hover { background: var(--surface-2); }
+  .navbar button:focus-visible { outline: 2px solid var(--ai); outline-offset: 2px; }
+  .navbar .counter { font-family: var(--font-mono); font-size: .82rem; color: var(--ink-soft);
+    padding: 0 8px; font-variant-numeric: tabular-nums; min-width: 62px; text-align: center; }
+  .theme-toggle { position: fixed; top: 14px; left: 16px; z-index: 60; width: 38px; height: 38px; border-radius: 50%;
+    border: 1px solid var(--line); background: color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter: blur(10px);
+    color: var(--ink); cursor: pointer; font-size: 1.05rem; display: grid; place-items: center; box-shadow: var(--shadow); }
+  .theme-toggle:focus-visible, .navbar button:focus-visible { outline: 2px solid var(--ai); outline-offset: 2px; }
+  .hint { position: fixed; bottom: 20px; right: 18px; z-index: 55; font-size: .76rem; color: var(--ink-faint);
+    background: color-mix(in srgb, var(--surface) 80%, transparent); padding: 5px 11px; border-radius: 999px;
+    border: 1px solid var(--line); transition: opacity .5s ease; }
+  @media (max-width: 680px) { .hint { display: none; } }
+
+  ul.clean { list-style: none; padding: 0; margin: 1.2rem 0 0; display: flex; flex-direction: column; gap: 10px; }
+  ul.clean li { display: flex; gap: 11px; align-items: flex-start; color: var(--ink-soft); font-size: 1rem; }
+  ul.clean li::before { content: "✓"; color: var(--shop); font-weight: 800; flex: none; }
+  ul.clean li.x::before { content: "✕"; color: var(--ink-faint); }
+
+  .footnote { margin-top: 1.6rem; font-size: .8rem; color: var(--ink-faint); }
+  .footnote code, .mono { font-family: var(--font-mono); }
+</style>
+
+<div class="progress" id="progress"></div>
+<button class="theme-toggle" id="themeToggle" aria-label="ライト/ダーク切り替え" title="テーマ切り替え">◐</button>
+
+<div class="deck" id="deck">
+
+  <!-- 1. COVER -->
+  <section class="slide cover" data-no="01">
+    <div class="slide__inner">
+      <div class="cover__kicker">EC-CUBE名古屋 vol.123 ／ 初心者向け</div>
+      <h1>AIが<span class="accent">お客様</span>になる時代の<br>ネットショップ<br>― <span class="accent2">EC-CUBE 4.4</span> でなにが変わる?</h1>
+      <p class="cover__sub">【初心者向け】エージェンティックコマース搭載<br>EC-CUBE 4.4 最新情報</p>
+      <div class="cover__meta">
+        <span><span class="dot"></span> エージェンティックコマース</span>
+        <span><span class="dot dot--ai"></span> MCPサーバー</span>
+        <span><span class="dot"></span> 店舗運営がラクになる新機能</span>
+        <span><span class="dot dot--ai"></span> 正式版リリースへ向け開発中</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. SELF INTRO -->
+  <section class="slide" data-no="02">
+    <div class="slide__inner">
+      <div class="eyebrow">自己紹介</div>
+      <h2 class="title">寿司職人から EC-CUBE エバンジェリストへ</h2>
+      <div class="profile">
+        <div class="avatar">🍣</div>
+        <div>
+          <div class="profile__name">大河内 健太郎</div>
+          <div class="profile__handle">@nanasess ／ 49才</div>
+          <div class="profile__rows">
+            <div class="prow"><span class="k">出身</span><span class="v">愛知県西尾市一色町</span></div>
+            <div class="prow"><span class="k">在住</span><span class="v">大阪市（四天王寺の近く）</span></div>
+            <div class="prow"><span class="k">前職</span><span class="v">寿司屋の板前</span></div>
+            <div class="prow"><span class="k">資格</span><span class="v">調理師・ふぐ処理師</span></div>
+          </div>
+          <div class="profile__role"><span>🧩</span>EC-CUBE コミッター・公式エバンジェリスト・名古屋ユーザーグループ</div>
+        </div>
+      </div>
+      <p class="footnote">※ 本資料と同じ内容は Zenn（@nanasess）にも掲載予定です。</p>
+    </div>
+  </section>
+
+  <!-- 3. AGENDA -->
+  <section class="slide" data-no="03">
+    <div class="slide__inner">
+      <div class="eyebrow">今日のお品書き</div>
+      <h2 class="title">この30分で、3つだけ持ち帰ってください</h2>
+      <div class="agenda-list">
+        <div class="agenda-item">
+          <span class="num-badge">1</span>
+          <div><h4>お客様が「AIに買い物を頼む」時代が来ている</h4>
+          <p>ChatGPT や Gemini に「これ買っておいて」と頼む ― その注文をEC-CUBEで受けられるようにする話。</p></div>
+        </div>
+        <div class="agenda-item">
+          <span class="num-badge num-badge--ai">2</span>
+          <div><h4>EC-CUBE 4.4 は「AIと会話できるお店」になる</h4>
+          <p>商品情報をAIに届ける仕組みと、お店のデータをAIに聞ける仕組み（MCPサーバー）が入ります。</p></div>
+        </div>
+        <div class="agenda-item">
+          <span class="num-badge num-badge--amber">3</span>
+          <div><h4>日々の運営がラクになる改善もたくさん</h4>
+          <p>返品申請、受注メモ、ゲスト購入のON/OFFなど。AIの話が「まだ先」でも、うれしい改善が並びます。</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TIMETABLE -->
+  <section class="slide" data-no="tt">
+    <div class="slide__inner">
+      <div class="eyebrow">本日の進め方（約4時間）</div>
+      <h2 class="title">タイムテーブル</h2>
+      <p class="lead">長丁場です。途中でどんどん質問・雑談してください。手を動かすデモや、みんなで考える時間も用意しています。休憩は、疲れてきた頃を見計らって適当に挟みます。</p>
+      <div class="timetable">
+        <div class="tt-row"><span class="time">Part 1</span><span class="what">導入＋自己紹介<small>「AIがお客様になる」ってどういうこと?</small></span><span class="dur">約20分</span></div>
+        <div class="tt-row"><span class="time">Part 2</span><span class="what">エージェンティックコマース入門<small>ACP / UCP・商品フィードのしくみ</small></span><span class="dur">約40分</span></div>
+        <div class="tt-row"><span class="time">Part 3</span><span class="what">購入・決済のしくみ<small>PurchaseFlow 再利用／決済プラグイン分業</small></span><span class="dur">約50分</span></div>
+        <div class="tt-row"><span class="time">Part 4</span><span class="what">MCPサーバー＋デモ<small>AIに店番を聞いてみる</small></span><span class="dur">約40分</span></div>
+        <div class="tt-row"><span class="time">Part 5</span><span class="what">運営がラクになる改善＋土台の更新<small>返品申請・受注メモ／Symfony 7.4 ほか</small></span><span class="dur">約30分</span></div>
+        <div class="tt-row"><span class="time">Part 6</span><span class="what">ディスカッション・質疑応答<small>「うちならどう使う?」をみんなで</small></span><span class="dur">約30分</span></div>
+      </div>
+      <p class="footnote">※ 時間はめやすです。休憩は適宜、参加者のみなさんの様子にあわせて前後します。</p>
+    </div>
+  </section>
+
+  <!-- 3. WHAT IS HAPPENING -->
+  <section class="slide" data-no="03">
+    <div class="slide__inner">
+      <div class="eyebrow eyebrow--ai">いま世界で起きていること</div>
+      <h2 class="title">「検索して、サイトを開いて、買う」が<br>変わろうとしています</h2>
+      <p class="lead">これまでお客様は、自分でGoogleで検索し、お店のサイトを開き、カートに入れて注文していました。
+      これからは <span class="kw-ai">AIアシスタント（ChatGPTなど）に頼むだけ</span>で、AIが代わりにお店を見つけ、注文まで済ませる。そんな買い方が始まっています。</p>
+      <div class="callout callout--ai">
+        <span class="ic">💡</span>
+        <p>これを <strong>「エージェンティックコマース（Agentic Commerce）」</strong> と呼びます。<br>
+        <em>エージェント＝代理人</em>。AIがお客様の「買い物代理人」になる、という意味です。OpenAI（ChatGPT）やGoogleが本気で進めています。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. AGENTIC COMMERCE EXPLAINED -->
+  <section class="slide" data-no="04">
+    <div class="slide__inner">
+      <div class="eyebrow eyebrow--ai">かみくだいて説明します</div>
+      <h2 class="title">お客様 → AI → あなたのお店</h2>
+      <p class="lead">お客様はAIに話しかけるだけ。AIがあなたのお店を見つけ、在庫と値段を確認し、注文を確定します。
+      あなたのお店は、その注文を <span class="kw-shop">いつもの受注</span> として受け取ります。</p>
+      <div class="flow">
+        <div class="flow-node flow-node--shop"><span class="ic">🧑</span><span class="nm">お客様</span><span class="ds">「白いスニーカー26cm 買っておいて」</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node flow-node--ai"><span class="ic">🤖</span><span class="nm">AIエージェント</span><span class="ds">ChatGPT / Gemini がお店探し・比較</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node flow-node--shop"><span class="ic">🏪</span><span class="nm">あなたのお店</span><span class="ds">EC-CUBE が在庫・送料・決済を処理</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node flow-node--shop"><span class="ic">📦</span><span class="nm">注文成立</span><span class="ds">いつも通り出荷するだけ</span></div>
+      </div>
+      <p class="footnote">※ お店側の作業は、ふだんの注文とほとんど変わりません。AI対応の「入り口」をEC-CUBEが用意します。</p>
+    </div>
+  </section>
+
+  <!-- 5. BEFORE / AFTER -->
+  <section class="slide" data-no="05">
+    <div class="slide__inner">
+      <div class="eyebrow">これまで と これから</div>
+      <h2 class="title">お客様との「出会い方」が増える</h2>
+      <div class="ba">
+        <div class="ba-col now">
+          <span class="ba-tag now">これまで</span>
+          <ul>
+            <li>お客様が自分で検索してサイトに来る</li>
+            <li>自分でカートに入れて、住所を入力して注文</li>
+            <li>お店のSEO・広告で「見つけてもらう」勝負</li>
+            <li>接点は「お店のサイト」だけ</li>
+          </ul>
+        </div>
+        <div class="ba-col next">
+          <span class="ba-tag next">これから（が加わる）</span>
+          <ul>
+            <li>AIがお客様の代わりにお店を探して比較</li>
+            <li>AIが注文を代行（住所・決済もAI経由）</li>
+            <li><strong>AIに「見つけてもらう」</strong>新しい入り口</li>
+            <li>接点が「AIとの会話の中」にも広がる</li>
+          </ul>
+        </div>
+      </div>
+      <div class="callout">
+        <span class="ic">🎯</span>
+        <p>ポイントは <strong>「今のお店をやめる」話ではない</strong> こと。今までの販売はそのまま、<span class="hl">AI経由という新しい販路が1つ増える</span>イメージです。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. ACP / UCP -->
+  <section class="slide" data-no="06">
+    <div class="slide__inner">
+      <div class="eyebrow eyebrow--ai">EC-CUBE 4.4 の対応</div>
+      <h2 class="title">世界に2つの「AIお買い物ルール」があります</h2>
+      <p class="lead">AIとお店がやりとりするには共通のルール（規格）が必要です。いま主流は次の2つ。<strong>EC-CUBE 4.4 はどちらにも対応します。</strong></p>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th></th><th class="c-acp">ACP</th><th class="c-ucp">UCP</th></tr></thead>
+          <tbody>
+            <tr><td class="rowlabel">正式名称</td><td>Agentic Commerce Protocol</td><td>Universal Commerce Protocol</td></tr>
+            <tr><td class="rowlabel">推進しているのは</td><td>OpenAI ＋ Stripe</td><td>Google（Merchant）ほか</td></tr>
+            <tr><td class="rowlabel">代表的な入り口</td><td>ChatGPT の即時購入<br>（Instant Checkout）</td><td>Google 経由のAI購入</td></tr>
+            <tr><td class="rowlabel">立ち位置</td><td>オープン仕様（Apache 2.0）</td><td>オープン仕様（Apache 2.0）</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">
+        <span class="ic">🤝</span>
+        <p>難しい名前ですが、店舗オーナーが覚えることは1つだけ：<strong>「ChatGPT用（ACP）とGoogle用（UCP）、両方の窓口をEC-CUBEが用意してくれる」</strong>。中身の違いは開発チームが吸収します。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. PRODUCT FEED -->
+  <section class="slide" data-no="07">
+    <div class="slide__inner">
+      <div class="eyebrow">しくみ① 商品を知ってもらう</div>
+      <h2 class="title">「商品フィード」でAIに商品カタログを届ける</h2>
+      <p class="lead">AIがあなたの商品を勧めるには、まず <span class="kw-shop">商品名・価格・在庫</span> を知ってもらう必要があります。
+      その「商品カタログの渡し方」が、ACPとUCPで逆向きなのが面白いところ。</p>
+      <div class="ba">
+        <div class="ba-col next" style="border-color:var(--shop);background:var(--shop-tint)">
+          <span class="ba-tag next" style="background:var(--shop)">ACP＝こちらから届ける（Push）</span>
+          <p style="margin:0;color:var(--ink-soft)">お店の商品リストを作って、OpenAI側へ<strong>送り出す</strong>方式。カタログを郵送するイメージ。</p>
+          <div class="flow" style="margin-top:14px">
+            <div class="flow-node flow-node--shop" style="flex-basis:110px"><span class="ic">🏪</span><span class="nm">お店</span></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node flow-node--ai" style="flex-basis:110px"><span class="ic">🤖</span><span class="nm">OpenAI</span></div>
+          </div>
+        </div>
+        <div class="ba-col next">
+          <span class="ba-tag next">UCP＝聞かれたら答える（Pull）</span>
+          <p style="margin:0;color:var(--ink-soft)">お店に「問い合わせ窓口」を用意し、AIが<strong>必要なときに聞きに来る</strong>方式。最新の在庫をその場で返せる。</p>
+          <div class="flow" style="margin-top:14px">
+            <div class="flow-node flow-node--ai" style="flex-basis:110px"><span class="ic">🤖</span><span class="nm">AI</span></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node flow-node--shop" style="flex-basis:110px"><span class="ic">🏪</span><span class="nm">お店</span></div>
+          </div>
+        </div>
+      </div>
+      <p class="footnote">この「商品フィード／カタログ配信」の土台は、すでに EC-CUBE 4.4 に取り込み済み（マージ済み）です。</p>
+    </div>
+  </section>
+
+  <!-- 8. CHECKOUT / PURCHASEFLOW -->
+  <section class="slide" data-no="08">
+    <div class="slide__inner">
+      <div class="eyebrow">しくみ② 購入を完了する</div>
+      <h2 class="title">AI経由でも「いつもの購入処理」を通る</h2>
+      <p class="lead">ここが一番の安心ポイント。EC-CUBE 4.4 は AI注文専用の特別な仕組みを別に作りません。
+      <span class="kw-shop">通常の購入と同じ「PurchaseFlow」</span>をそのまま再利用します。</p>
+      <div class="grid g2" style="margin-top:1.4rem">
+        <div class="card card--shop">
+          <h4>🔁 同じ処理を共有するから安心</h4>
+          <p>税の計算・送料・代引き手数料・ポイント付与・在庫の引き当て・注文番号の採番。これらは通常注文とAI注文でまったく同じロジックを通ります。二重管理の心配がありません。</p>
+        </div>
+        <div class="card card--ai">
+          <h4>🔑 CheckoutSession という「合言葉」</h4>
+          <p>AIはブラウザのCookieを持ちません。そこで、推測されにくい専用のセッションIDでカートを束ねます。人間の買い物カゴと同じ役割を、AI向けに用意した形です。</p>
+        </div>
+      </div>
+      <div class="callout">
+        <span class="ic">✅</span>
+        <p><strong>店舗オーナーへの意味：</strong>在庫・金額・ポイントの計算がAI注文でも「今までと同じ」＝<span class="hl">帳簿や在庫がズレない</span>。ここを作り込んだのが 4.4 の肝です。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9. PAYMENT -->
+  <section class="slide" data-no="09">
+    <div class="slide__inner">
+      <div class="eyebrow">しくみ③ お金のやりとり</div>
+      <h2 class="title">決済は「決済プラグイン」が担当</h2>
+      <p class="lead">「AIにクレジットカード情報を渡して大丈夫?」という不安。ここは仕組みで解決されています。</p>
+      <div class="flow">
+        <div class="flow-node flow-node--ai"><span class="ic">🤖</span><span class="nm">AI</span><span class="ds">お客様の代わりに「支払いトークン」を提示</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node flow-node--shop"><span class="ic">🏪</span><span class="nm">EC-CUBE</span><span class="ds">受け取り窓口だけ用意</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node flow-node--shop"><span class="ic">💳</span><span class="nm">決済プラグイン</span><span class="ds">実際の決済を安全に処理</span></div>
+      </div>
+      <ul class="clean">
+        <li>生のカード番号ではなく <strong>「使い切りの支払いトークン」</strong> をやりとりする設計（Shared Payment Token）</li>
+        <li>実際の決済処理は <strong>決済プラグイン側</strong>（例：サンプル決済／Stripe決済）が担当。本体は窓口だけ</li>
+        <li>3Dセキュア（本人認証）の中断・再開にも対応する参考実装が用意されている</li>
+      </ul>
+      <p class="footnote">EC-CUBE 本体は「決済ハンドラの契約（インターフェース）」だけを定義し、実装は決済プラグインが差し込む分業構造です。</p>
+    </div>
+  </section>
+
+  <!-- 10. MCP INTRO -->
+  <section class="slide" data-no="10">
+    <div class="slide__inner">
+      <div class="eyebrow eyebrow--ai">もう一つの目玉</div>
+      <h2 class="title">MCPサーバー ―<br>お店のデータをAIに「聞ける」ようにする</h2>
+      <p class="lead">エージェンティックコマースが「AIがお客様として買う」話なら、MCPは <span class="kw-ai">「あなた自身がAIに店番を手伝ってもらう」</span> 話です。</p>
+      <div class="callout callout--ai">
+        <span class="ic">💬</span>
+        <p>Claude や Cursor などのAIツールに、こう聞けるようになります：<br>
+        <strong>「在庫が10個を切っている商品を教えて」「今日の未発送の注文は?」「先月リピートしたお客様は?」</strong><br>
+        管理画面を何クリックも探さず、<span class="hl">会話でお店の状況を把握</span>できます。</p>
+      </div>
+      <p class="footnote">MCP（Model Context Protocol）＝ AIツールと外部データを安全につなぐ、いま広く使われている共通規格です。</p>
+    </div>
+  </section>
+
+  <!-- 11. MCP DETAIL -->
+  <section class="slide" data-no="11">
+    <div class="slide__inner">
+      <div class="eyebrow eyebrow--ai">MCPサーバーの中身</div>
+      <h2 class="title">見られる範囲は4分野・すべて「読み取り専用」</h2>
+      <div class="toolgrid">
+        <div class="tool"><div class="ic">📦</div><div class="nm">商品・在庫</div><div class="ds">在庫数・価格の確認</div></div>
+        <div class="tool"><div class="ic">🧾</div><div class="nm">注文</div><div class="ds">受注状況の把握</div></div>
+        <div class="tool"><div class="ic">👥</div><div class="nm">顧客・会員</div><div class="ds">会員情報の参照</div></div>
+        <div class="tool"><div class="ic">🧩</div><div class="nm">プラグイン</div><div class="ds">導入状況の確認</div></div>
+      </div>
+      <div class="grid g2" style="margin-top:1.4rem">
+        <div class="card card--ai">
+          <h4>🔒 安全のための3つの約束</h4>
+          <p style="margin-bottom:.5rem"><strong>① 読み取り専用</strong>：AIは「見る」だけ。勝手に注文を変更・削除できません。</p>
+          <p style="margin-bottom:.5rem"><strong>② 認証つき</strong>：管理者がログイン・許可した接続だけ。合言葉（OAuth2トークン）が必要です。</p>
+          <p><strong>③ 全部記録</strong>：AIが何を見たかは監査ログに残ります。</p>
+        </div>
+        <div class="card card--shop">
+          <h4>🔌 使うときに必要なもの</h4>
+          <p style="margin-bottom:.5rem">EC-CUBE 本体に MCP サーバーが同梱され、<span class="mono-chip">/admin/mcp</span> で提供されます。</p>
+          <p style="margin-bottom:.5rem">認証は API プラグイン（4.4対応版）に任せる2層構成。導入すれば <strong>URLを入れるだけ</strong>でAIツールとつながります。</p>
+          <p>個人情報も見えるため、「どのAIにどこまで見せるか」は管理者が権限で管理します。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEMO -->
+  <section class="slide" data-no="demo">
+    <div class="slide__inner">
+      <div class="eyebrow eyebrow--ai">デモ ／ イメージ</div>
+      <h2 class="title">AIに店番を聞いてみる</h2>
+      <p class="lead">MCPサーバーにつなぐと、こんな会話ができます。管理画面を開かなくても、AIがEC-CUBEの中を「読んで」答えてくれます。</p>
+      <div class="chat">
+        <div class="chat__head"><span class="d"></span><span class="d" style="background:var(--amber)"></span><span class="d" style="background:var(--shop)"></span>&nbsp;Claude / Cursor — EC-CUBE (MCP)</div>
+        <div class="bubble me">在庫が10個を切っている商品を、少ない順に教えて</div>
+        <div class="bubble ai"><span class="tool">🔧 mcp:product:read</span><br>在庫が少ない商品は次の3件です：<br>・オーガニックコットンTシャツ（白/M）… <strong>残り3</strong><br>・帆布トートバッグ … 残り6<br>・ハンドドリップ珈琲 200g … 残り9</div>
+        <div class="bubble me">今日の未発送の注文は何件?</div>
+        <div class="bubble ai"><span class="tool">🔧 mcp:order:read</span><br>本日「新規受付」で未発送の注文は <strong>7件</strong> です。うち代引きが2件あります。</div>
+      </div>
+      <p class="footnote">※ AIは「見る」だけ（読み取り専用）。在庫を書き換えたり注文を確定したりはしません。実際の見え方は接続するAIツールにより異なります。</p>
+    </div>
+  </section>
+
+  <!-- 12. HONEST STATUS -->
+  <section class="slide" data-no="12">
+    <div class="slide__inner">
+      <div class="eyebrow">正直ベースの温度感</div>
+      <h2 class="title">「うちに今すぐ関係ある?」への正直な答え</h2>
+      <p class="lead">大事なので率直に言います。AI購入は <strong>世界的にもまだ始まったばかり（β段階）</strong>。今日から売上が激変するわけではありません。
+      でも <span class="hl">今から土台を持っておくこと</span>に価値があります。</p>
+      <div class="grid g3" style="margin-top:1.2rem">
+        <div class="card"><h4><span class="pill done">土台 完成</span></h4><p>商品フィード・共通基盤・購入処理のつなぎ込みは4.4に<strong>取り込み済み</strong>。</p></div>
+        <div class="card"><h4><span class="pill wip">実装中</span></h4><p>ChatGPT用・Google用の購入窓口、MCPサーバー本体は<strong>レビュー・開発中</strong>。</p></div>
+        <div class="card"><h4><span class="pill wip">これから</span></h4><p>各社AIの本格対応・決済プラグイン整備は<strong>今後順次</strong>。</p></div>
+      </div>
+      <div class="callout">
+        <span class="ic">🧭</span>
+        <p><strong>店舗オーナーの構え方：</strong>「明日から使う機能」ではなく「乗り遅れないための準備」。EC-CUBEを4.4に上げておけば、<span class="hl">波が来たときにすぐ乗れる</span>状態になります。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 13. STORE OWNER IMPROVEMENTS -->
+  <section class="slide" data-no="13">
+    <div class="slide__inner">
+      <div class="eyebrow">AIの話が先でも、うれしい</div>
+      <h2 class="title">日々の運営がラクになる改善たち</h2>
+      <p class="lead">4.4 には、店舗運営の「かゆいところ」に手が届く改善もたくさん入る予定です。</p>
+      <div class="grid g3">
+        <div class="card card--amber"><h4>↩️ 返品申請機能</h4><p>お客様がマイページから返品を申請できる仕組み。</p></div>
+        <div class="card card--amber"><h4>📝 受注管理メモ</h4><p>注文ごとに社内メモを残せる。電話対応の記録などに。</p></div>
+        <div class="card card--amber"><h4>🚪 ゲスト購入 ON/OFF</h4><p>会員登録なしの購入を、店舗ごとに切り替え可能に。</p></div>
+        <div class="card card--amber"><h4>🔢 注文履歴に問い合わせ番号</h4><p>マイページの注文履歴に配送のお問い合わせ番号を表示。</p></div>
+        <div class="card card--amber"><h4>📋 受注一覧の表示項目設定</h4><p>一覧に出す列を店舗の好みで選べるように。</p></div>
+        <div class="card card--amber"><h4>🍪 Cookie同意の取得</h4><p>プライバシー配慮のためのCookie同意バナー機能。</p></div>
+      </div>
+      <p class="footnote">ほかにも、配送・支払方法の保存/復元、受注登録の入力補助、売上集計のメモリ改善など多数。詳細はマイルストーン 4.4.0 を参照。</p>
+    </div>
+  </section>
+
+  <!-- 14. FOUNDATION / SECURITY -->
+  <section class="slide" data-no="14">
+    <div class="slide__inner">
+      <div class="eyebrow">見えないけど大事な土台</div>
+      <h2 class="title">中身が新しくなり、より安全・長持ちに</h2>
+      <p class="lead">車でいえばエンジンの載せ替え。表からは見えませんが、<strong>長く安全に使うため</strong>の更新です。</p>
+      <div class="stat-row">
+        <div class="stat"><div class="v ai">7.4</div><div class="l">Symfony（土台の枠組み）を最新化。サポートは2029年11月まで</div></div>
+        <div class="stat"><div class="v">8.5</div><div class="l">PHP 8.2〜8.5に対応。古いPHPは卒業</div></div>
+        <div class="stat"><div class="v ai">18</div><div class="l">PostgreSQL 13〜18に対応。MySQLは8.4 LTS</div></div>
+      </div>
+      <ul class="clean" style="margin-top:1.4rem">
+        <li>XSS（表示の抜け穴）やアクセス権限まわりの<strong>セキュリティ修正</strong>を多数取り込み</li>
+        <li>パスワード要件を最新の国際基準（NIST）に沿って見直し</li>
+        <li>公式14プラグインも4.4に合わせて更新。移行を助けるツール（Rector設定）も同梱</li>
+      </ul>
+      <div class="callout">
+        <span class="ic">⚠️</span>
+        <p><strong>注意：</strong>土台が新しくなる分、独自カスタマイズや古いプラグインは<span class="hl">修正が必要な場合があります</span>。アップグレードは事前確認を。公式のアップグレードガイドが用意されます。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 15. ROADMAP -->
+  <section class="slide" data-no="15">
+    <div class="slide__inner">
+      <div class="eyebrow">これからの予定</div>
+      <h2 class="title">正式版リリースへ向けて開発が進行中</h2>
+      <div class="grid g2" style="margin-top:1.2rem">
+        <div class="card card--shop">
+          <h4>🗓️ リリースの方針</h4>
+          <p style="margin-bottom:.6rem">Symfony 6.4 のサポート終了（2027年11月）に備えた <strong>メジャーアップデート</strong>。同時にAIフレンドリーな機能を盛り込みます。</p>
+          <p>品質目標は高く：<strong>リリース後6ヶ月で不具合ゼロ／セキュリティホールゼロ</strong>を掲げています。</p>
+        </div>
+        <div class="card card--ai">
+          <h4>🧭 4.4 が目指すもの</h4>
+          <p style="margin-bottom:.6rem"><strong>「AIと会話できるEC」</strong>への第一歩。商品フィード・MCP・各種定義ファイルで、AIがお店を理解しやすくします。</p>
+          <p>いわゆる <span class="mono-chip">AEO</span>（AI検索最適化）時代への布石でもあります。</p>
+        </div>
+      </div>
+      <div class="callout callout--ai">
+        <span class="ic">🔗</span>
+        <p>最新情報は GitHub のロードマップ（Issue #6762）とマイルストーン「4.4.0」で公開・更新中。OSSなので、要望も目安箱Issueから届けられます。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- DISCUSSION -->
+  <section class="slide" data-no="disc">
+    <div class="slide__inner">
+      <div class="eyebrow eyebrow--ai">みんなで考えてみよう</div>
+      <h2 class="title">「うちのお店ならどう使う?」</h2>
+      <p class="lead">正解はありません。自分のお店に引きつけて、気軽に話してみましょう。ここが今日いちばん大事な時間かもしれません。</p>
+      <div class="qcards">
+        <div class="qcard"><span class="q">Q1</span><p>AIに「見つけてもらう」なら、うちのどの商品が向いていそう?</p></div>
+        <div class="qcard"><span class="q">Q2</span><p>商品情報（名前・説明・在庫）は、AIが読んで分かる状態になってる?</p></div>
+        <div class="qcard"><span class="q">Q3</span><p>毎日の運営で「AIに聞けたら助かる」ことは何?（在庫・受注・問い合わせ…）</p></div>
+        <div class="qcard"><span class="q">Q4</span><p>AI経由で買われるとして、いちばん不安なところは?</p></div>
+      </div>
+      <p class="footnote">※ 出た意見・要望は、EC-CUBE の目安箱Issue（GitHub）へフィードバックできます。</p>
+    </div>
+  </section>
+
+  <!-- 16. TAKEAWAYS -->
+  <section class="slide cover" data-no="16">
+    <div class="slide__inner">
+      <div class="eyebrow">まとめ</div>
+      <h2 class="title">これだけ覚えて帰ってください</h2>
+      <div class="takeaways">
+        <div class="take"><span class="n">1</span><div>
+          <h4>AIが「お客様」になる時代が始まっている</h4>
+          <p>ChatGPTやGoogleのAIがお店を探して注文する ― EC-CUBE 4.4 はその窓口（ACP／UCP）を用意します。</p></div></div>
+        <div class="take"><span class="n" style="color:var(--ai)">2</span><div>
+          <h4>安心の理由は「いつもの購入処理を使い回す」こと</h4>
+          <p>在庫・税・送料・ポイントは通常注文と同じ計算。AIに店番を聞けるMCPも読み取り専用で安全設計。</p></div></div>
+        <div class="take"><span class="n" style="color:var(--amber)">3</span><div>
+          <h4>まずは 4.4 に上げて「波に乗れる状態」に</h4>
+          <p>AI対応はまだβ。でも土台を持てば、運営がラクになる改善も一緒に手に入り、次の波にすぐ乗れます。</p></div></div>
+      </div>
+      <p class="lead" style="margin-top:1.8rem">ご清聴ありがとうございました。質問・ディスカッションへ 🙌</p>
+    </div>
+  </section>
+
+</div>
+
+<nav class="navbar" aria-label="スライド操作">
+  <button id="prev" aria-label="前のスライド">‹</button>
+  <span class="counter" id="counter">01 / 16</span>
+  <button id="next" aria-label="次のスライド">›</button>
+</nav>
+<div class="hint" id="hint">← → キーでめくれます</div>
+
+<script>
+  (function () {
+    var deck = document.getElementById('deck');
+    var slides = Array.prototype.slice.call(deck.querySelectorAll('.slide'));
+    var total = slides.length;
+    var counter = document.getElementById('counter');
+    var progress = document.getElementById('progress');
+    var hint = document.getElementById('hint');
+    var current = 0;
+
+    function pad(n){ return (n < 10 ? '0' : '') + n; }
+
+    // auto-number slides so inserting/removing a slide never desyncs the tab
+    slides.forEach(function (s, i) {
+      s.setAttribute('data-no', pad(i + 1));
+      s.setAttribute('data-total', pad(total));
+    });
+
+    function update() {
+      var mid = deck.scrollTop + deck.clientHeight / 2;
+      var idx = 0;
+      for (var i = 0; i < slides.length; i++) {
+        if (slides[i].offsetTop <= mid) idx = i;
+      }
+      current = idx;
+      counter.textContent = pad(current + 1) + ' / ' + pad(total);
+      progress.style.width = (total > 1 ? (current / (total - 1)) * 100 : 0) + '%';
+    }
+
+    function go(i) {
+      current = Math.max(0, Math.min(total - 1, i));
+      slides[current].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    deck.addEventListener('scroll', function () {
+      window.requestAnimationFrame(update);
+    }, { passive: true });
+
+    document.getElementById('next').addEventListener('click', function(){ go(current + 1); });
+    document.getElementById('prev').addEventListener('click', function(){ go(current - 1); });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); go(current + 1); }
+      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(current - 1); }
+      else if (e.key === 'Home') { e.preventDefault(); go(0); }
+      else if (e.key === 'End') { e.preventDefault(); go(total - 1); }
+    });
+
+    // hide hint after first interaction / few seconds
+    var hideHint = function(){ if (hint) { hint.style.opacity = '0'; } };
+    setTimeout(hideHint, 4500);
+    deck.addEventListener('scroll', hideHint, { once: true, passive: true });
+
+    // theme toggle
+    var root = document.documentElement;
+    var toggle = document.getElementById('themeToggle');
+    toggle.addEventListener('click', function () {
+      var cur = root.getAttribute('data-theme');
+      if (!cur) {
+        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        cur = prefersDark ? 'dark' : 'light';
+      }
+      root.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+    });
+
+    update();
+  })();
+</script>
