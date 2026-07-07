@@ -174,7 +174,7 @@ if echo "$cmd" | grep -qE '(^|[;&|]\s*|\s)rm\s' \
   && echo "$cmd" | grep -qE '\s(-[a-zA-Z]*f[a-zA-Z]*|--force)(\s|$)'; then
 
   # システムパス・ホーム直下は deny、それ以外は ask (確認プロンプト) に昇格
-  if echo "$cmd" | grep -qE "rm\s[^;&|]*\s(/(bin|boot|dev|etc|lib|lib64|opt|proc|root|run|sbin|srv|sys|usr|var)(/[^[:space:];&|]*)?|/home(/[^/[:space:]]+)?/?|/\*?|~/?|\\\$HOME/?|\.\.)([[:space:];&|'\"]|$)"; then
+  if echo "$cmd" | grep -qE "rm\s[^;&|]*\s['\"]?(/(bin|boot|dev|etc|lib|lib64|opt|proc|root|run|sbin|srv|sys|usr|var)(/[^[:space:];&|]*)?|/home(/[^/[:space:]]+)?/?|/\*?|~/?|\\\$HOME/?|\.\./?)([[:space:];&|'\"]|$)"; then
     emit deny "システムパス・ホーム直下への rm 再帰+強制削除はブロック対象です"
   fi
   emit ask "rm の再帰+強制削除が含まれます。対象パスを確認してください"
