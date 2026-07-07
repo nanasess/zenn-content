@@ -3,7 +3,7 @@ title: "Claude Code が「プロンプトインジェクション検出」を報
 emoji: "👻"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["claudecode", "llm", "security", "ai"]
-published: false
+published: true
 ---
 
 :::message
