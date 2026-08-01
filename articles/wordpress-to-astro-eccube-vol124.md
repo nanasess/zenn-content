@@ -3,10 +3,14 @@ title: "【初心者向け】Astro で EC-CUBE のコンテンツ管理を安全
 emoji: "🛡️"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["eccube", "astro", "wordpress", "cloudflare", "claudecode"]
-published: false
+published: true
 ---
 
 *この記事は「EC-CUBE名古屋 vol.124」勉強会の記録です。*
+
+:::message
+この記事は [Claude Code](https://claude.com/claude-code) を使用して、勉強会当日の構築・移行作業の実施からスライド作成、本記事の執筆までを行っています。作業は筆者の監視のもとで進めました。
+:::
 
 当日のスライドはこちらで公開しています。
 
