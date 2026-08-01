@@ -8,6 +8,10 @@ published: false
 
 *この記事は「EC-CUBE名古屋 vol.124」勉強会の記録です。*
 
+:::message
+この記事は [Claude Code](https://claude.com/claude-code) を使用して、勉強会当日の構築・移行作業の実施からスライド作成、本記事の執筆までを行っています。作業は筆者の監視のもとで進めました。
+:::
+
 当日のスライドはこちらで公開しています。
 
 https://claude.ai/code/artifact/de61b1b5-7660-4ca2-8435-19aa5de90407
