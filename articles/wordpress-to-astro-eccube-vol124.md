@@ -521,6 +521,10 @@ RemoteIPTrustedProxy 103.21.244.0/22
 
 この構成では **`/blog/*` へのアクセスがすべて Worker を通る**ため、Workers の無料枠を消費します。運用に入る前に見積もっておくべき点です。
 
+:::message
+以下の数字は、本記事が採用した **「Worker が `/blog/*` を Pages に中継するプロキシ構成」** に対するものです。アーキテクチャを変えるとコストの前提そのものが変わります。節の最後に別構成との比較を載せています。
+:::
+
 | 項目 | 無料プラン | Paid プラン |
 | --- | --- | --- |
 | リクエスト | **100,000 / 日**（UTC 0時リセット） | **1,000万 / 月**（日次上限なし） |
@@ -565,6 +569,68 @@ Workers ルートに紐付いた Worker は、**Cloudflare のキャッシュ判
 - **それ以上** — 超過分は $0.30 / 100万リクエストなので、2,000万リクエストでも月 $8 程度
 
 「URL を1文字も変えずに、ブログをオリジンから完全に切り離す」ことの対価としては、月 $5 は十分に見合うと考えています。
+
+#### 補足：Workers Static Assets なら前提が変わる
+
+ここまでの数字は、本記事が採用した**プロキシ構成**に対するものです。**Astro の `dist` を Worker 自身にバンドルして配信する構成**にすると、コストの前提が根本的に変わります。
+
+| | 構成A：プロキシ型（本記事） | 構成B：Workers Static Assets |
+| --- | --- | --- |
+| Worker の役割 | `/blog/*` を受けて `fetch()` で Pages に中継 | `dist` を Worker にバンドルして直接配信 |
+| Astro の置き場 | Cloudflare Pages（別デプロイ） | Worker 自身 |
+| `/blog/*` の全リクエスト | **すべて Worker が実行される** | **静的アセットにヒットすれば Worker コードは実行されない** |
+
+公式ドキュメントには、こう明記されています。
+
+> **Requests to static assets are free and unlimited.**
+> — [Pricing · Cloudflare Workers docs](https://developers.cloudflare.com/workers/platform/pricing/)
+
+つまり構成Bでは、先ほどの「1ページ = HTML + フォント + favicon + JSON で 5〜10リクエスト」のうち、**フォント・favicon・`_astro/*`・JSON はすべて静的アセットとして無料・無制限**になります。**本文の「10万PV/日まで無料ではない」を、構成Bはちょうど裏返す形**になります。
+
+##### 実機で検証しました
+
+公式ドキュメントの設定例には `main`（Worker コード）が含まれており、「アセットだけで zone route に載せられるか」「アセットヒット時に Worker コードが実行されないか」は読み取れません。実際に試しました。
+
+**① `main` なしでも zone route にデプロイできる**
+
+```toml
+name = "assets-only-test"
+compatibility_date = "2026-08-01"
+route = { pattern = "example.shop/blog-assets-test/*", zone_name = "example.shop" }
+
+[assets]
+directory = "dist"
+```
+
+`main` を書かずにデプロイが通り、`dist/blog-assets-test/` 配下がそのまま配信されました。
+
+**② アセットにヒットすると Worker コードは実行されない**
+
+`main` を併設し、実行された場合だけ `x-worker-ran: yes` を返す Worker で確認しました。
+
+| パス | HTTP | Worker コード実行 |
+| --- | --- | --- |
+| `/blog-assets-test/` | 200 | **いいえ** |
+| `/blog-assets-test/asset.txt` | 200 | **いいえ** |
+| `/blog-assets-test/sub/` | 200 | **いいえ** |
+| `/blog-assets-test/nothere` | 200 | **はい**（アセットが無いパスのみ） |
+
+**アセットに当たれば Worker コードは動かず、外れたときだけ動く**という挙動です。`assets only`（Worker コードなし）にすれば、そもそも実行されるコードがありません。
+
+:::message
+検証中に気づいた点が2つあります。`html_handling` の既定により **`/path/index.html` は 307 でスラッシュ付き URL にリダイレクト**されます。また、デプロイ直後は**エッジ間で伝播差**があり、同じアセットが colo によって 404 / 200 と割れました（数十秒で解消）。
+:::
+
+##### では、なぜ本記事は構成Aなのか
+
+構成Bのほうがコストは有利ですが、**Pages の DX（`git push` での自動デプロイ・プレビューデプロイ）を手放す**ことになります。構成Bは `wrangler deploy` でのアセット配信になるためです。
+
+- 構成A＝**DX を取り、コストを Worker が負う**
+- 構成B＝**コストを最小化し、デプロイの手軽さを手放す**
+
+というトレードオフです。URL を1文字も変えない方針は、**どちらの構成でも維持できます**。
+
+サブディレクトリ配信の設定は公式ドキュメントに例があります：[Serving a subdirectory · Cloudflare Workers docs](https://developers.cloudflare.com/workers/static-assets/routing/advanced/serving-a-subdirectory/)
 
 参考：[Pricing · Cloudflare Workers docs](https://developers.cloudflare.com/workers/platform/pricing/) / [Limits · Cloudflare Pages docs](https://developers.cloudflare.com/pages/platform/limits/)
 
