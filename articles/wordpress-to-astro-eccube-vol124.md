@@ -621,14 +621,29 @@ directory = "dist"
 検証中に気づいた点が2つあります。`html_handling` の既定により **`/path/index.html` は 307 でスラッシュ付き URL にリダイレクト**されます。また、デプロイ直後は**エッジ間で伝播差**があり、同じアセットが colo によって 404 / 200 と割れました（数十秒で解消）。
 :::
 
-##### では、なぜ本記事は構成Aなのか
+##### メリット・デメリットで比べる
 
-構成Bのほうがコストは有利ですが、**Pages の DX（`git push` での自動デプロイ・プレビューデプロイ）を手放す**ことになります。構成Bは `wrangler deploy` でのアセット配信になるためです。
+コストだけでなく、デプロイ・障害点まで並べると使い分けが見えてきます。
 
-- 構成A＝**DX を取り、コストを Worker が負う**
-- 構成B＝**コストを最小化し、デプロイの手軽さを手放す**
+| 観点 | 構成A：プロキシ型（本記事） | 構成B：Workers Static Assets |
+| --- | --- | --- |
+| コスト | `/blog/*` の**全リクエスト**が Worker 課金対象（実質 1〜2万 PV/日で無料枠） | 静的アセットは**無料・無制限**。課金対象は実質 HTML 本体だけ、`assets only` ならゼロ |
+| デプロイ | Cloudflare の **Git 連携がビルド〜プレビューまで巻き取る**（ワークフロー不要） | **GitHub Actions（`wrangler-action`）を自前で用意**。`git push` 自動デプロイ・PR プレビューは同等に組める |
+| セットアップ | ◎ ほぼ設定不要 | ○ Actions の YAML を数十行 |
+| 障害点 | お客様 → Worker → **Pages** → オリジンの中継。`pages.dev` への転送が **522 になりうる**（本記事で実際に発生） | Worker が**直接配信**。`pages.dev` 中継が無く、障害点が1つ減る |
+| URL を変えない | ◎ | ◎ |
 
-というトレードオフです。URL を1文字も変えない方針は、**どちらの構成でも維持できます**。
+##### 「デプロイの手軽さを手放す」わけではない
+
+構成Bは `wrangler deploy` になりますが、これは**手動デプロイという意味ではありません**。[公式の `cloudflare/wrangler-action`](https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/) を使えば `git push` で自動デプロイでき（必要な Secret は `CLOUDFLARE_API_TOKEN` と `CLOUDFLARE_ACCOUNT_ID` の2つ）、[Preview URLs](https://developers.cloudflare.com/workers/versions-and-deployments/preview-urls/) で PR ごとのプレビューも出せます。
+
+**この記事の主眼である「Claude が記事を書いて `git push` したら公開まで自動」は、構成Bでも成立します。** 差は DX の有無ではなく、**Cloudflare が全部お膳立てしてくれる（構成A）か、GitHub Actions を数十行だけ自分で書く（構成B）か**です。
+
+##### どちらを選ぶか
+
+- **まず動かしたい・CI を書きたくない** → 構成A（勉強会でもこちらを採用しました）
+- **PV が伸びてコストが気になる・障害点を減らしたい** → 構成B
+- **URL はどちらでも1文字も変わりません**。構成Aで始めて、必要になったら構成Bへ移す、という段階移行もできます
 
 サブディレクトリ配信の設定は公式ドキュメントに例があります：[Serving a subdirectory · Cloudflare Workers docs](https://developers.cloudflare.com/workers/static-assets/routing/advanced/serving-a-subdirectory/)
 
