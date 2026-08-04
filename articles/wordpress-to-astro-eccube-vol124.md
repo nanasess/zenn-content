@@ -574,6 +574,24 @@ Workers ルートに紐付いた Worker は、**Cloudflare のキャッシュ判
 
 ここまでの数字は、本記事が採用した**プロキシ構成**に対するものです。**Astro の `dist` を Worker 自身にバンドルして配信する構成**にすると、コストの前提が根本的に変わります。
 
+経路にすると違いは一目瞭然です。構成Aは Worker から Pages への**中継が1段多く**、この区間が本記事で実際に **522** を返しました。構成Bはその中継がありません。
+
+```mermaid
+flowchart LR
+    subgraph A["構成A：プロキシ型（本記事）"]
+        direction LR
+        UA["お客様"] --> WA["Worker<br/>(中継するだけ)"]
+        WA -->|"fetch() ＝ ここが 522 リスク"| PA["Cloudflare Pages<br/>(dist を配信)"]
+    end
+    subgraph B["構成B：Static Assets"]
+        direction LR
+        UB["お客様"] --> WB["Worker + dist<br/>(そのまま配信)"]
+    end
+```
+
+- **構成A**：`/blog/*` の全リクエストが Worker を通る → 全部が課金対象
+- **構成B**：アセットにヒットすれば Worker コードは動かない → 静的アセットは無料・無制限
+
 | | 構成A：プロキシ型（本記事） | 構成B：Workers Static Assets |
 | --- | --- | --- |
 | Worker の役割 | `/blog/*` を受けて `fetch()` で Pages に中継 | `dist` を Worker にバンドルして直接配信 |
