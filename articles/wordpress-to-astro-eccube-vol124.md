@@ -517,6 +517,156 @@ RemoteIPTrustedProxy 103.21.244.0/22
 `https://www.cloudflare.com/ips-v4` は**末尾に改行がありません**。`cat ips-v4 ips-v6` で連結すると最終行と先頭行がくっつき、レンジを2つ取りこぼします。実際にこれで `httpd -t` が構文エラーになりました。
 :::
 
+### コスト：どの規模から Workers Paid が必要になるか
+
+この構成では **`/blog/*` へのアクセスがすべて Worker を通る**ため、Workers の無料枠を消費します。運用に入る前に見積もっておくべき点です。
+
+:::message
+以下の数字は、本記事が採用した **「Worker が `/blog/*` を Pages に中継するプロキシ構成」** に対するものです。アーキテクチャを変えるとコストの前提そのものが変わります。節の最後に別構成との比較を載せています。
+:::
+
+| 項目 | 無料プラン | Paid プラン |
+| --- | --- | --- |
+| リクエスト | **100,000 / 日**（UTC 0時リセット） | **1,000万 / 月**（日次上限なし） |
+| 超過時 | **Error 1027**（ブログが見られなくなる） | $0.30 / 100万リクエスト |
+| CPU 時間 | 10ms / リクエスト | 3,000万 CPU-ms / 月 |
+| 月額 | $0 | **$5〜** |
+
+なお **Cloudflare Pages 側はリクエスト無制限**です。課金対象になるのは振り分け役の Worker だけです。
+
+#### 「10万PV/日まで無料」ではない
+
+ここが誤解しやすいところです。1ページの表示で消費するのは1リクエストではありません。
+
+```
+/blog/                          ← HTML
+/blog/_astro/fonts/xxxx.woff2   ← フォント
+/blog/favicon.svg
+/blog/related/2.json            ← 商品ページからの読み込み
+```
+
+**すべて `/blog/*` に含まれるため、全部が Worker を通ります。** 1ページあたり 5〜10 リクエストとして換算すると：
+
+| | リクエスト上限 | ページビュー換算 |
+| --- | --- | --- |
+| 無料 | 10万 / 日 | **約 1〜2万 PV / 日**（月 30〜60万 PV） |
+| $5 | 1,000万 / 月 | **約 100〜200万 PV / 月** |
+
+#### キャッシュしても Worker の実行回数は減らない
+
+Workers ルートに紐付いた Worker は、**Cloudflare のキャッシュ判定より前に必ず実行されます**。`Cache-Control` を効かせても課金対象の実行回数そのものは減りません。ここが一番の落とし穴です。
+
+#### CPU 時間は制約になりません
+
+一般に「Workers の請求を決めるのは CPU 時間であってリクエスト数ではない」と言われます。画像処理などの重い Worker では、リクエスト上限に届く前に CPU 枠を使い切るためです。
+
+ただし今回の Worker は当てはまりません。やっているのは URL の組み立てとヘッダー1行の設定だけで、**`fetch()` の待ち時間は CPU 時間にカウントされません**。1リクエストあたり 1ms 未満と見積もると 3,000万 CPU-ms は 3,000万リクエスト相当となり、**先に 1,000万リクエストの枠に当たります**。
+
+#### 判断の目安
+
+- **月 30万 PV 未満** — 無料枠で足ります
+- **月 30万〜200万 PV** — **$5 で収まります**（多くの店舗はここ）
+- **それ以上** — 超過分は $0.30 / 100万リクエストなので、2,000万リクエストでも月 $8 程度
+
+「URL を1文字も変えずに、ブログをオリジンから完全に切り離す」ことの対価としては、月 $5 は十分に見合うと考えています。
+
+#### 補足：Workers Static Assets なら前提が変わる
+
+ここまでの数字は、本記事が採用した**プロキシ構成**に対するものです。**Astro の `dist` を Worker 自身にバンドルして配信する構成**にすると、コストの前提が根本的に変わります。
+
+経路にすると違いは一目瞭然です。構成Aは Worker から Pages への**中継が1段多く**、この区間が本記事で実際に **522** を返しました。構成Bはその中継がありません。
+
+```mermaid
+flowchart LR
+    subgraph A["構成A：プロキシ型（本記事）"]
+        direction LR
+        UA["お客様"] --> WA["Worker<br/>(中継するだけ)"]
+        WA -->|"fetch() ＝ ここが 522 リスク"| PA["Cloudflare Pages<br/>(dist を配信)"]
+    end
+    subgraph B["構成B：Static Assets"]
+        direction LR
+        UB["お客様"] --> WB["Worker + dist<br/>(そのまま配信)"]
+    end
+```
+
+- **構成A**：`/blog/*` の全リクエストが Worker を通る → 全部が課金対象
+- **構成B**：アセットにヒットすれば Worker コードは動かない → 静的アセットは無料・無制限
+
+| | 構成A：プロキシ型（本記事） | 構成B：Workers Static Assets |
+| --- | --- | --- |
+| Worker の役割 | `/blog/*` を受けて `fetch()` で Pages に中継 | `dist` を Worker にバンドルして直接配信 |
+| Astro の置き場 | Cloudflare Pages（別デプロイ） | Worker 自身 |
+| `/blog/*` の全リクエスト | **すべて Worker が実行される** | **静的アセットにヒットすれば Worker コードは実行されない** |
+
+公式ドキュメントには、こう明記されています。
+
+> **Requests to static assets are free and unlimited.**
+> — [Pricing · Cloudflare Workers docs](https://developers.cloudflare.com/workers/platform/pricing/)
+
+つまり構成Bでは、先ほどの「1ページ = HTML + フォント + favicon + JSON で 5〜10リクエスト」のうち、**フォント・favicon・`_astro/*`・JSON はすべて静的アセットとして無料・無制限**になります。**本文の「10万PV/日まで無料ではない」を、構成Bはちょうど裏返す形**になります。
+
+##### 実機で検証しました
+
+公式ドキュメントの設定例には `main`（Worker コード）が含まれており、「アセットだけで zone route に載せられるか」「アセットヒット時に Worker コードが実行されないか」は読み取れません。実際に試しました。
+
+**① `main` なしでも zone route にデプロイできる**
+
+```toml
+name = "assets-only-test"
+compatibility_date = "2026-08-01"
+route = { pattern = "example.shop/blog-assets-test/*", zone_name = "example.shop" }
+
+[assets]
+directory = "dist"
+```
+
+`main` を書かずにデプロイが通り、`dist/blog-assets-test/` 配下がそのまま配信されました。
+
+**② アセットにヒットすると Worker コードは実行されない**
+
+`main` を併設し、実行された場合だけ `x-worker-ran: yes` を返す Worker で確認しました。
+
+| パス | HTTP | Worker コード実行 |
+| --- | --- | --- |
+| `/blog-assets-test/` | 200 | **いいえ** |
+| `/blog-assets-test/asset.txt` | 200 | **いいえ** |
+| `/blog-assets-test/sub/` | 200 | **いいえ** |
+| `/blog-assets-test/nothere` | 200 | **はい**（アセットが無いパスのみ） |
+
+**アセットに当たれば Worker コードは動かず、外れたときだけ動く**という挙動です。`assets only`（Worker コードなし）にすれば、そもそも実行されるコードがありません。
+
+:::message
+検証中に気づいた点が2つあります。`html_handling` の既定により **`/path/index.html` は 307 でスラッシュ付き URL にリダイレクト**されます。また、デプロイ直後は**エッジ間で伝播差**があり、同じアセットが colo によって 404 / 200 と割れました（数十秒で解消）。
+:::
+
+##### メリット・デメリットで比べる
+
+コストだけでなく、デプロイ・障害点まで並べると使い分けが見えてきます。
+
+| 観点 | 構成A：プロキシ型（本記事） | 構成B：Workers Static Assets |
+| --- | --- | --- |
+| コスト | `/blog/*` の**全リクエスト**が Worker 課金対象（実質 1〜2万 PV/日で無料枠） | 静的アセットは**無料・無制限**。課金対象は実質 HTML 本体だけ、`assets only` ならゼロ |
+| デプロイ | Cloudflare の **Git 連携がビルド〜プレビューまで巻き取る**（ワークフロー不要） | **GitHub Actions（`wrangler-action`）を自前で用意**。`git push` 自動デプロイ・PR プレビューは同等に組める |
+| セットアップ | ◎ ほぼ設定不要 | ○ Actions の YAML を数十行 |
+| 障害点 | お客様 → Worker → **Pages** → オリジンの中継。`pages.dev` への転送が **522 になりうる**（本記事で実際に発生） | Worker が**直接配信**。`pages.dev` 中継が無く、障害点が1つ減る |
+| URL を変えない | ◎ | ◎ |
+
+##### 「デプロイの手軽さを手放す」わけではない
+
+構成Bは `wrangler deploy` になりますが、これは**手動デプロイという意味ではありません**。[公式の `cloudflare/wrangler-action`](https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/) を使えば `git push` で自動デプロイでき（必要な Secret は `CLOUDFLARE_API_TOKEN` と `CLOUDFLARE_ACCOUNT_ID` の2つ）、[Preview URLs](https://developers.cloudflare.com/workers/versions-and-deployments/preview-urls/) で PR ごとのプレビューも出せます。
+
+**この記事の主眼である「Claude が記事を書いて `git push` したら公開まで自動」は、構成Bでも成立します。** 差は DX の有無ではなく、**Cloudflare が全部お膳立てしてくれる（構成A）か、GitHub Actions を数十行だけ自分で書く（構成B）か**です。
+
+##### どちらを選ぶか
+
+- **まず動かしたい・CI を書きたくない** → 構成A（勉強会でもこちらを採用しました）
+- **PV が伸びてコストが気になる・障害点を減らしたい** → 構成B
+- **URL はどちらでも1文字も変わりません**。構成Aで始めて、必要になったら構成Bへ移す、という段階移行もできます
+
+サブディレクトリ配信の設定は公式ドキュメントに例があります：[Serving a subdirectory · Cloudflare Workers docs](https://developers.cloudflare.com/workers/static-assets/routing/advanced/serving-a-subdirectory/)
+
+参考：[Pricing · Cloudflare Workers docs](https://developers.cloudflare.com/workers/platform/pricing/) / [Limits · Cloudflare Pages docs](https://developers.cloudflare.com/pages/platform/limits/)
+
 ---
 
 ## 発展：ブログ記事を商品詳細ページに埋め込む
