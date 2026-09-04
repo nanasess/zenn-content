@@ -2,7 +2,7 @@
 title: "WSL 用ターミナルは noctty が良いぞ — PR を 4 本マージしてもらって分かったこと"
 emoji: "🌙"
 type: "tech" # tech: 技術記事 / idea: アイデア
-topics: ["wsl", "windows", "terminal", "zig", "claudecode"]
+topics: ["noctty", "wsl", "terminal", "zig", "claudecode"]
 published: true
 ---
 
