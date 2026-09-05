@@ -3,7 +3,7 @@ title: "【初心者向け】ChatGPTの音声モードでEC座談会をしてみ
 emoji: "🎙️"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["eccube", "chatgpt", "ai", "ec", "server"]
-published: false
+published: true
 ---
 
 *この記事は「【初心者向け】ChatGPT の音声モードでEC座談会 | EC-CUBE名古屋 vol.125」勉強会の記録です。*
