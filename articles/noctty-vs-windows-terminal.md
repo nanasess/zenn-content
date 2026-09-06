@@ -224,11 +224,9 @@ Windows Terminal 側は「基本的な Windows テレメトリ設定なら Termi
 
 noctty 側は [ADR 0004](https://github.com/amanthanvi/noctty/blob/main/docs/adr/0004-keep-diagnostics-local-and-explicit.md) で「診断はローカル生成、明示操作でのみエクスポート、ターミナル内容・クリップボード・環境・コマンドライン・cwd・生 config・ダンプは既定で除外」と決めています。`+diagnostic-bundle` も既定でそれらを落とします。
 
-## 性能を比較しない理由
+## 公式の性能比較が無い理由
 
-「どっちが速いの」が知りたいところだと思いますが、**この記事では比較しません**。
-
-理由は、noctty 自身が比較を公開していないからです。[`docs/windows-benchmark-methodology.md`](https://github.com/amanthanvi/noctty/blob/main/docs/windows-benchmark-methodology.md) にこう書かれています。
+「どっちが速いの」が知りたいところだと思います。ただ **noctty は公式には比較を公開していません**。[`docs/windows-benchmark-methodology.md`](https://github.com/amanthanvi/noctty/blob/main/docs/windows-benchmark-methodology.md) にこう書かれています。
 
 > ハーネスは Alacritty、Windows Terminal、Tabby、Wave を検出するが、生産側だけのタイミングをターミナルのスループットとして報告することはしない。競合のメトリクスは、そのアダプタが、ターミナルのレンダリング計装か検証済みの PresentMon ETW キャプチャのいずれかによって、安定したプロセス / ウィンドウの所有権のもとで**同じ因果的エンドポイントを証明するまで `not-supported`** のままである。
 
@@ -242,6 +240,63 @@ noctty 側は [ADR 0004](https://github.com/amanthanvi/noctty/blob/main/docs/adr
 - アイドル計測で見つかったバグの記録が生々しい。**Num Lock がオンであるだけで、マウス移動のたびに同一フレームが present されていた**（修飾キーの比較で、生の値と正規化済みの値を突き合わせていたのが原因）
 
 自分のプロダクトの数字を、性能目標を満たせていない状態のまま出せるかというと、なかなかできないと思います。
+
+## 非公式に測ってみた
+
+上の基準は「比較するな」ではなく「同じ因果的エンドポイントを証明できるまで出すな」です。条件が明示されているので、満たせるか試しました。
+
+:::message alert
+**この節の数値は筆者による非公式計測で、noctty プロジェクトのレビューを受けていません。** 公式の見解ではありません。
+:::
+
+### やったこと
+
+noctty のベンチマークハーネス（`test/windows/bench-windows.ps1`）に PresentMon の ETW アダプタを足しました。既存の競合メトリクスを埋めるのではなく、**両者を同じ外部計器で測る新しいメトリクスを追加**しています。
+
+既存の `cold_start_app_ms` は noctty のレンダートレースを、`idle_swap_count_delta` はプロセス内部のスワップカウンタを読んでいて、Windows Terminal に同等物はありません。同じ名前に別のエンドポイントを入れたら、この文書自身が禁じている比較になってしまいます。
+
+### 結果
+
+計測条件は、同一マシン・各 5 回・noctty 1.3.2-dev+windows（ReleaseFast、同梱 ConPTY v2）・Windows Terminal 1.24.260710001・PresentMon 2.5.1 です。
+
+| | noctty | Windows Terminal |
+|---|---|---|
+| **キー入力 → 画面到達**（中央値） | **8.2 ms** | **23.6 ms** |
+| 同 実測レンジ | 4.9〜11.4 ms | 21.1〜25.4 ms |
+| **アイドル 10 秒の表示フレーム数** | **0** | 18 |
+| 同 GPU 実働 | **0 ms** | 18.7 ms |
+| コールドスタート（中央値） | 480〜570 ms | 466〜496 ms |
+
+**打鍵から文字が出るまでは noctty が約 2.9 倍速く、分布が全く重なりません。** 差は約 15 ms で、60 Hz の 1 フレーム（16.7 ms）に近い量です。ここは体感に直結します。
+
+**アイドル時、noctty は 1 フレームも描きません。** Windows Terminal は毎秒 1.8 枚出し続けます。ただし絶対値は 10 秒あたり GPU 18.7 ms（0.19%）と小さく、速さではなく電力の話です。
+
+### コールドスタートは互角
+
+差より大きいものが見つかりました。再起動を挟んで 3 セッション測ったところ、**同一バイナリでセッション平均が 87 ms 動きました**（483 → 570 → 566 ms）。ターミナル間の差（14〜87 ms）はこの変動に収まります。
+
+これは失敗ではなく、`docs/windows-benchmark-methodology.md` が競合数値を出さない理由の裏づけになりました。**出さないのは慎重すぎるからではなく、実際にこの規模のノイズがあるから**です。
+
+### 測れなかったもの
+
+スループット（大量出力を流したときの速さ）は測っていません。present が出たことは「端末がバイトを消費した」証明にならず、厳密にやるには終端マーカーを画面上で確認する仕組みが要ります。そこまではやっていません。**「速い」の一部しか測れていない**ということです。
+
+### この計測の限界
+
+- **入力レイテンシは近似値です。** 入力後の最初の present がエコー文字を含む保証はありません。無関係なフレームを拾うと値は小さく出ます。これはアイドル時にフレームを出し続ける Windows Terminal 側に有利なバイアスで、**それでも 2.9 倍の差が残りました**
+- 1 台のマシン、各 5 回です
+- コールドスタートのセッション間変動については、原因の特定まではしていません
+
+### ついでに見つけたもの
+
+アダプタを書く過程でハーネス側のバグを 1 つ踏みました。`Get-BenchTargetAdapter` が候補パスを `switch` で組み立てているのですが、PowerShell の `switch` は**単一要素の配列をスカラーにアンロール**します。候補が 1 つなのは noctty ブランチだけなので、見つからなかったときのフォールバックが文字列を添字アクセスし、`noctty.exe` が `C` に解決されていました。
+
+```
+Missing noctty.exe at C:\...
+octty-bench\C
+```
+
+`noctty.exe` が未生成のときにしか通らない経路なので、クリーンなチェックアウトの初回だけ踏みます。
 
 ## 使い分けの指針
 
@@ -259,6 +314,7 @@ noctty 側は [ADR 0004](https://github.com/amanthanvi/noctty/blob/main/docs/adr
 - ローカルの物理マシンで、OpenGL 4.3 以上の GPU がある
 - **Kitty グラフィックスプロトコル**を使うツールがある
 - 分割の undo/redo、名前付きレイアウト、Quick select、コピーモードが欲しい
+- キー入力の応答速度を重視する（上記の非公式計測での差が最も大きかった項目）
 - テレメトリを一切通したくない
 - CLI からの構造化された自動化が要る
 - Ghostty の設定文法とテーマ資産をそのまま使いたい
@@ -283,6 +339,7 @@ noctty 側は [ADR 0004](https://github.com/amanthanvi/noctty/blob/main/docs/adr
 - **残る機能差は Kitty グラフィックスプロトコル**と、Windows ネイティブ UI の作り込み（undo/redo、名前付きレイアウト、Quick select、コピーモード、構造化自動化）
 - **noctty を選べない条件は明快**。OpenGL 4.3、スクリーンリーダー、組織配布のどれかに当たるなら Windows Terminal
 - **両者は排他ではない**。noctty の既定ターミナル機能はむしろ Windows Terminal を必要とする
+- **非公式に測った範囲では、キー応答は noctty が約 2.9 倍速く、起動は互角**。ただしスループットは測れていない
 
 個人的には、noctty のいちばんの価値は機能そのものより **ドキュメントの正直さ**だと思っています。「対応しています」で濁さず、どこまで動いてどこから動かないか、何を計測して何を計測していないかが書いてある。性能目標を満たせていない数字をそのまま出し、自分の移行ガイドに「あなたは移行するな」と書ける。
 
@@ -311,6 +368,11 @@ noctty 側は [ADR 0004](https://github.com/amanthanvi/noctty/blob/main/docs/adr
 - [microsoft/terminal#20361](https://github.com/microsoft/terminal/pull/20361) — AltGr 合成文字が KKP 下で落ちる（修正 PR は未マージ）
 - [microsoft/terminal#17510](https://github.com/microsoft/terminal/pull/17510) — ConPTY v1 / v2 の境界
 - [microsoft/terminal#6118](https://github.com/microsoft/terminal/issues/6118) — テレメトリの文書化要望（2020 年にクローズ、docs リポジトリへ移管）
+
+### 計測に使ったもの
+
+- [Intel PresentMon](https://github.com/GameTechDev/PresentMon) — ETW ベースの present 計測。Console 版 2.5.1 を使用
+- [`docs/windows-benchmark-methodology.md`](https://github.com/amanthanvi/noctty/blob/main/docs/windows-benchmark-methodology.md) — 競合メトリクスに要求される証拠水準
 
 ### 関連記事
 
