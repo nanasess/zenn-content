@@ -3,7 +3,7 @@ title: "noctty と Windows Terminal を比べる — どちらを選ぶかは「
 emoji: "⚖️"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["noctty", "windowsterminal", "terminal", "windows", "wsl"]
-published: false
+published: true
 ---
 
 :::message
