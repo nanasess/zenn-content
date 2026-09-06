@@ -41,7 +41,7 @@ published: true
 |---|---|
 | **noctty 側** | リポジトリの [`docs/`](https://github.com/amanthanvi/noctty/tree/main/docs) 配下 27 ファイルを通読。該当箇所のファイル名を都度示します |
 | **Windows Terminal 側** | 公式リリースノートと microsoft/terminal の Issue を確認。URL を都度示します |
-| **性能** | **比較しません**（理由は後述） |
+| **性能** | 公式の比較値が無いため、**PresentMon で自前計測しました**（非公式。測れた範囲と限界は後述） |
 
 なお noctty のドキュメントは、この種の比較記事にとって珍しく使いやすい資料です。[`docs/windows-capability-matrix.md`](https://github.com/amanthanvi/noctty/blob/main/docs/windows-capability-matrix.md) が upstream Ghostty のドキュメント項目を 1 行ずつ `supported` / `partial` / `windows-specific` に分類していて、`partial` の内訳が具体的に書かれています。前回の記事でも触れましたが、比較の土台として引用できるレベルで正直です。
 

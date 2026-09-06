@@ -422,6 +422,14 @@ split-inherit-working-directory = false
 
 そしてもし noctty を使っていてバグを踏んだら、直して投げるのが早いです。数時間で返ってきます。
 
+## 続編
+
+機能単位で Windows Terminal と比較した続編を書きました。
+
+- [noctty と Windows Terminal を比べる — どちらを選ぶかは「GPU とスクリーンリーダー」で決まる](https://zenn.dev/nanasess/articles/noctty-vs-windows-terminal)
+
+noctty を**選んではいけない 3 つの条件**（OpenGL 4.3、スクリーンリーダー、組織配布）と、noctty のベンチマークハーネスに PresentMon アダプタを足して非公式に測った性能を載せています。
+
 ## 参考リンク
 
 - [noctty (amanthanvi/noctty)](https://github.com/amanthanvi/noctty)
