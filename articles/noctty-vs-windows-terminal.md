@@ -39,7 +39,7 @@ published: false
 
 | 区分 | 根拠 |
 |---|---|
-| **noctty 側** | リポジトリの [`docs/`](https://github.com/amanthanvi/noctty/tree/main/docs) 配下 24 ファイルを通読。該当箇所のファイル名を都度示します |
+| **noctty 側** | リポジトリの [`docs/`](https://github.com/amanthanvi/noctty/tree/main/docs) 配下 27 ファイルを通読。該当箇所のファイル名を都度示します |
 | **Windows Terminal 側** | 公式リリースノートと microsoft/terminal の Issue を確認。URL を都度示します |
 | **性能** | **比較しません**（理由は後述） |
 
@@ -66,10 +66,10 @@ Sixel は Windows Terminal 1.22 で入ったので、もう差ではありませ
 
 したがって、`Ctrl+,` と `Ctrl+.` の区別、キーリリースイベント、左右修飾キーの識別といった、Neovim や Helix で効いてくる部分は**両方で使えます**。
 
-ただし Windows Terminal 側には既知の不具合が残っています。
+ただし Windows Terminal 側には注意点があります。
 
-- **AltGr との組み合わせが入力できない**（1.25.622.0 で報告）
-- **F13〜F20 が Kitty のシーケンスではなく従来のものになる**（[#20243](https://github.com/microsoft/terminal/issues/20243)）
+- **AltGr との組み合わせが入力できない**（1.25.622.0 で報告。[#20361](https://github.com/microsoft/terminal/pull/20361) に「AltGr 合成文字が合成結果ではなく `alt+<key>` の CSI u として符号化される」と現象が説明されていますが、この修正 PR はマージされずクローズされています）
+- **F13〜F20 が Kitty のシーケンスではなく従来のものになる**（[#20243](https://github.com/microsoft/terminal/issues/20243)。2026 年 9 月に `Resolution-By-Design` でクローズされ、不具合ではなく仕様という整理になりました）
 
 noctty 側は AltGr の扱いを明示的に設計しています（[`docs/windows.md`](https://github.com/amanthanvi/noctty/blob/main/docs/windows.md) の Keyboard 節）。Windows が AltGr 押下時に合成する「左 Ctrl + 右 Alt」を破棄し、レイアウトの文字を出す。AltGr マッピングを持つレイアウトでのみこの折り畳みを適用する、という条件まで書かれています。日本語キーボードでは AltGr が無いので影響しませんが、欧州系レイアウトを使う人には効きます。
 
@@ -216,7 +216,7 @@ noctty +send-text --class=work --surface-id=$($pane.surface_id) 'git status'
 
 | | noctty | Windows Terminal |
 |---|---|---|
-| **テレメトリ** | **なし**。アップロードするコードパスがリポジトリに存在しない | Windows の診断データ設定に従う。アプリ独自の opt-out は文書化されていない（[#6118](https://github.com/microsoft/terminal/issues/6118) で文書化が要望されている） |
+| **テレメトリ** | **なし**。アップロードするコードパスがリポジトリに存在しない | Windows の診断データ設定に従う。アプリ独自の opt-out は無く、OS 側の診断データ設定で制御する（文書化を求めた [#6118](https://github.com/microsoft/terminal/issues/6118) は 2020 年に完了扱いでクローズされ、ドキュメントリポジトリへ移管されました） |
 | **外向き通信** | 更新チェックのみ（24 時間に 1 回、`auto-update = off` で停止） | — |
 | **クラッシュダンプ** | `%LOCALAPPDATA%\noctty\crash` にローカル固定 | — |
 
@@ -236,7 +236,7 @@ noctty 側は [ADR 0004](https://github.com/amanthanvi/noctty/blob/main/docs/adr
 
 この文書は他にも読みどころがあります。
 
-- **予算未達を調整せず公開している**。ペインあたりメモリ 32.14 MB（予算 20 MB）、コールドスタート p95 313 ms（予算 300 ms 未満）
+- **予算未達を調整せず公開している**。ペインあたりメモリ 32.14 MB（予算 20 MB）、コールドスタートは中央値 297 ms で予算内・p95 313 ms で超過（予算 300 ms 未満）
 - **CI のしきい値は中央値ではなく「観測された最遅の実行」の下**に置かれている。ウォームアップが無いので 1 回目が大きく下振れするから
 - しきい値はすべて `passed: null` の inactive で、**ゲートを黙って通すことができない**設計
 - アイドル計測で見つかったバグの記録が生々しい。**Num Lock がオンであるだけで、マウス移動のたびに同一フレームが present されていた**（修飾キーの比較で、生の値と正規化済みの値を突き合わせていたのが原因）
@@ -307,9 +307,10 @@ noctty 側は [ADR 0004](https://github.com/amanthanvi/noctty/blob/main/docs/adr
 - [Windows Terminal Preview 1.22 Release](https://devblogs.microsoft.com/commandline/windows-terminal-preview-1-22-release/) — Sixel、書記素クラスタ、ConPTY 書き直し
 - [microsoft/terminal#11509](https://github.com/microsoft/terminal/issues/11509) — Kitty キーボードプロトコル対応
 - [microsoft/terminal#8389](https://github.com/microsoft/terminal/issues/8389) / [#17309](https://github.com/microsoft/terminal/issues/17309) — Kitty グラフィックスプロトコル（未対応）
-- [microsoft/terminal#20243](https://github.com/microsoft/terminal/issues/20243) — F13〜F20 の Kitty シーケンス
+- [microsoft/terminal#20243](https://github.com/microsoft/terminal/issues/20243) — F13〜F20 の Kitty シーケンス（`Resolution-By-Design` でクローズ）
+- [microsoft/terminal#20361](https://github.com/microsoft/terminal/pull/20361) — AltGr 合成文字が KKP 下で落ちる（修正 PR は未マージ）
 - [microsoft/terminal#17510](https://github.com/microsoft/terminal/pull/17510) — ConPTY v1 / v2 の境界
-- [microsoft/terminal#6118](https://github.com/microsoft/terminal/issues/6118) — テレメトリの文書化要望
+- [microsoft/terminal#6118](https://github.com/microsoft/terminal/issues/6118) — テレメトリの文書化要望（2020 年にクローズ、docs リポジトリへ移管）
 
 ### 関連記事
 
