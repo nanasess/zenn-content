@@ -7,7 +7,7 @@ published: false
 ---
 
 :::message
-この記事は [Claude Code](https://claude.com/claude-code) を使用して調査・執筆しています。
+この記事は Claude Code で執筆しています。noctty と Windows Terminal の一次資料の調査も [Claude Code](https://claude.com/claude-code) が実施しました。
 :::
 
 以前、[WSL 用ターミナルは noctty が良いぞ](https://zenn.dev/nanasess/articles/noctty-wsl-terminal-contribution) という記事を書きました。今回はその続きとして、**Windows Terminal と noctty を機能単位で比較**します。
@@ -51,10 +51,10 @@ published: false
 
 | | noctty | Windows Terminal |
 |---|---|---|
-| **Kitty グラフィックスプロトコル** | 対応 | **非対応**（[#8389](https://github.com/microsoft/terminal/issues/8389) が 2020 年 11 月から、[#17309](https://github.com/microsoft/terminal/issues/17309) も open のまま） |
+| **Kitty グラフィックスプロトコル** | 対応 | **非対応**（[#8389](https://github.com/microsoft/terminal/issues/8389) が 2020 年 11 月から open。同じ要望の [#17309](https://github.com/microsoft/terminal/issues/17309) は 2024 年に重複としてクローズ） |
 | **Sixel** | 対応 | **1.22 で対応**（[リリースノート](https://devblogs.microsoft.com/commandline/windows-terminal-preview-1-22-release/)） |
 
-Sixel は Windows Terminal 1.22 で入ったので、もう差ではありません。`img2sixel` や `chafa` を通す運用なら両方で動きます。
+Sixel は Windows Terminal 1.22 で入ったので、もう差ではありません。`img2sixel` や `chafa` を通す運用なら両方で動きます — ただしこれは後述する **ConPTY v2 を経由する場合**の話です。Windows Terminal 1.22 以降か noctty の同梱 ConPTY v2 なら通りますが、v1 や in-box conhost に落ちる経路では DCS ごと剥がされます。
 
 **残る差は Kitty グラフィックスプロトコル**です。`timg`、`yazi` のプレビュー、Neovim の画像プラグインなど、Kitty プロトコル前提のツールを使うなら noctty 側に理由が立ちます。
 
@@ -82,7 +82,7 @@ noctty 側は AltGr の扱いを明示的に設計しています（[`docs/windo
 
 **つまり v2 の恩恵は Windows Terminal ユーザーも受けています。** noctty の優位は「v2 を同梱していて、in-box conhost に落ちたときの劣化を回避できる」という点に絞られます。
 
-なお [`docs/windows-vt-conformance.md`](https://github.com/amanthanvi/noctty/blob/main/docs/windows-vt-conformance.md) には同一マシンでの実測が載っていて、in-box (v1) では Kitty graphics APC と Sixel DCS が**完全に消失**、バンドル版 (v2) では**バイト単位で一致**と記録されています。printable マーカーは両方で生存しているので、パイプが空だったのではなく確かにシーケンスが剥がされている、という書き方まで含めて丁寧です。
+なお `docs/windows-vt-conformance.md` の [Measured child-to-master differential](https://github.com/amanthanvi/noctty/blob/main/docs/windows-vt-conformance.md#measured-child-to-master-differential) 節には同一マシン（Windows `10.0.26200.0`、in-box conhost `10.0.26100.1`、同梱 `conpty.dll` `1.24.260710001`）での実測が載っていて、in-box (v1) では Kitty graphics APC と Sixel DCS が**完全に消失**、バンドル版 (v2) では**バイト単位で一致**と記録されています。printable マーカーは両方で生存しているので、パイプが空だったのではなく確かにシーケンスが剥がされている、という書き方まで含めて丁寧です。しかも「この測定が示すのは伝送の生存だけで、Kitty のピクセル描画のギャップを埋めるものではない」という但し書きまで付いています。
 
 そして注意書きも重要です。**in-box conhost の世代を OS のビルド番号から推測してはいけない**。v2 を含む最初の Windows ビルドは特定できていない、と明記されています。
 
