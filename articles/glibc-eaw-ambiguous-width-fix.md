@@ -319,7 +319,7 @@ data.width = @min(2, data.wcwidth_standalone);
 
 実測 (glibc 2.43):
 
-```
+```text
 LOCPATH あり (この記事の構成): △→○●■□▲ = 2,  ─│ = 1,  あ = 2  ← 端末とずれる
 LOCPATH なし:                  △→○●■□▲ = 1,  ─│ = 1,  あ = 2  ← 端末と一致
 ```
@@ -336,16 +336,40 @@ LOCPATH なし:                  △→○●■□▲ = 1,  ─│ = 1,  あ = 
 | glibc `wcwidth()` (zsh / readline / tmux) | 1 | 素の `ja_JP.utf8` を使う (`LOCPATH` の上書きをやめる) |
 | Claude Code TUI | 1 | Node.js の標準 Unicode 幅テーブル |
 | Emacs GUI (WSLg) | 2 | `eaw-console.el` + UDEV Gothic JPDOC |
-| Emacs TUI (`emacs -nw`) | 1 | `eaw-console.el` を読み込まない |
+| Emacs TUI (`emacs -nw` / `emacsclient -t`) | 1 | `use-default-char-width-table` で既定のテーブルに戻す |
 
-Emacs 側で 1 点だけ注意が要ります。`char-width-table` は**プロセスグローバル**でフレームごとには切り替えられないため、GUI 用の設定のまま `emacs -nw` を noctty 上で開くと、今度は Emacs だけが幅 2 前提で描画してずれます。そこで GUI (と daemon) のときだけ読み込むようにしました。
+#### 落とし穴: Emacs は「読み込まなければ幅 1」ではない
+
+ここで 1 つ勘違いをしていました。**Emacs は `wcwidth()` を参照しません。**日本語の言語環境では CJK 用の `char-width-table` を使い、Ambiguous を**罫線 (`─│`) まで含めてすべて幅 2** にします。`eaw-console.el` は、そのうち罫線だけを幅 1 に戻すもの (EAW-CONSOLE 方式) であって、読み込まなければ幅 1 になる、という性質のものではありませんでした。
+
+実測 (Emacs 31.1, `LANG=ja_JP.UTF-8`):
+
+```text
+既定 (何もしない):              △→○●■ = 2,  ─│ = 2,  あ = 2
+eaw-console.el を読む:          △→○●■ = 2,  ─│ = 1,  あ = 2
+(use-default-char-width-table): △→○●■ = 1,  ─│ = 1,  あ = 2   ← noctty と一致
+```
+
+つまり TUI で「`eaw-console.el` を読み込まない」だけだと、**罫線まで幅 2 になって端末とのずれはむしろ広がります**。tty フレームで端末に揃えるには、`use-default-char-width-table` を明示的に呼ぶ必要があります。
+
+もう 1 つ、`char-width-table` は**プロセスグローバル**でフレームごとには切り替えられません。そこでフレームの種別で分岐させ、GUI フレームなら EAW-CONSOLE、tty フレームなら既定のテーブル、という形にしました。
 
 ```elisp
-;; daemon 起動時は初期化の時点で display-graphic-p が nil になるので daemonp も見る
-(when (or (daemonp) (display-graphic-p))
-  (load (expand-file-name
-         (locate-user-emacs-file "site-lisp/eaw-console")) t t))
+(defun my/apply-char-width-table (&optional frame)
+  "FRAME に応じて char-width-table を設定する。"
+  (if (display-graphic-p (or frame (selected-frame)))
+      (load (expand-file-name
+             (locate-user-emacs-file "site-lisp/eaw-console")) t t)
+    (use-default-char-width-table)))
+
+;; daemon 起動時は初期化の時点で display-graphic-p が nil なので、
+;; フォント設定と同じくフレーム生成のフックに回す
+(if (daemonp)
+    (add-hook 'after-make-frame-functions #'my/apply-char-width-table)
+  (my/apply-char-width-table))
 ```
+
+daemon で GUI フレームと tty フレームを同時に使う場合は、後から作ったフレームの方針で上書きされます。プロセスグローバルである以上ここが限界で、厳密に分けたいなら GUI 用と TUI 用で daemon を分けることになります。
 
 副次的に、`cell_widths` を捨てたことで「注意: Claude Code との互換性」で書いた `●` / `⎿` の例外処理も不要になりました。Claude Code の TUI はもともと Ambiguous を幅 1 として扱うので、端末側が幅 1 なら最初から一致します。
 
