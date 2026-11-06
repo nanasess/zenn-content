@@ -122,15 +122,6 @@ EC-CUBE は **「基本税率 = 標準税率 10%」で運用する設計**にな
 
 ところが今回下がるのは**商品別税率で設定している 8% の方**です。商品別税率は保存した瞬間に適用される設計で、予約ができません。4系では、商品別税率を新規作成するときの適用日時に `new \DateTime()` が入り、以後の更新では税率だけが書き換わります。
 
-```php:src/Eccube/Controller/Admin/Product/ProductController.php
-if ($ProductClass->getTaxRule()) {
-    $ProductClass->getTaxRule()->setTaxRate($ProductClass->getTaxRate());
-} else {
-    $taxrule = $this->taxRuleRepository->newTaxRule();
-    $taxrule->setTaxRate($ProductClass->getTaxRate());
-    $taxrule->setApplyDate(new \DateTime());
-```
-
 https://github.com/EC-CUBE/ec-cube/blob/47c2a4266987a943e589fc073ccc4ac85ee48129/src/Eccube/Controller/Admin/Product/ProductController.php#L525-L545
 
 さらに、商品別税率は商品規格と 1対1 (`OneToOne`) で紐付いているため、1つの商品規格に「8%→1%→8%」のような複数の税率を持たせることもできません。
@@ -187,13 +178,6 @@ EC-CUBE の設計どおりの構成です。今回の引下げで最も手間が
 
 EC-CUBE は 2系/3系/4系のいずれも、税率を**その時点の現在時刻**で判定し、受注明細に保存します。4系の判定部分は次のとおりです。
 
-```php:src/Eccube/Repository/TaxRuleRepository.php
-$parameters = [];
-$qb = $this->createQueryBuilder('t')
-    ->where('t.apply_date < :apply_date');
-$parameters[':apply_date'] = new \DateTime();
-```
-
 https://github.com/EC-CUBE/ec-cube/blob/47c2a4266987a943e589fc073ccc4ac85ee48129/src/Eccube/Repository/TaxRuleRepository.php#L166-L169
 
 受注日時や出荷日ではなく、**計算した瞬間の時刻**で判定しています。バージョンごとの税率確定タイミングは次のとおりです。
@@ -205,14 +189,6 @@ https://github.com/EC-CUBE/ec-cube/blob/47c2a4266987a943e589fc073ccc4ac85ee48129
 | 4系 | 購入手続きの画面遷移ごとに再計算し、**注文確定時点**の税率 |
 
 3系では、3/31 23:50 に購入手続きを開始して 4/1 0:05 に注文を確定すると、8% のまま受注日は 4/1 になります。
-
-```php:src/Eccube/Service/ShoppingService.php
-$TaxRule = $this->app['eccube.repository.tax_rule']->getByRule($Product, $ProductClass);
-$OrderDetail->setProduct($Product)
-    // (略)
-    ->setTaxRule($TaxRule->getCalcRule()->getId())
-    ->setTaxRate($TaxRule->getTaxRate());
-```
 
 https://github.com/EC-CUBE/ec-cube3/blob/b5593b0a24d25021da8d4ac6020306ada1c4d95f/src/Eccube/Service/ShoppingService.php#L519-L527
 
@@ -339,18 +315,6 @@ EC-CUBE の商品価格は**税抜価格**で登録し、税込価格は「税�
 
 4系は、商品別税率が有効な場合、**商品 CSV 登録で税率を一括更新できます**。販売価格と税率を同時に更新できるため、税込価格の据え置きにも対応できます。
 
-```php:src/Eccube/Controller/Admin/Product/CsvImportController.php
-if ($ProductClassOrg->getTaxRule()) {
-    // 商品別税率の設定があれば税率を更新
-    $ProductClassOrg->getTaxRule()->setTaxRate($taxRate);
-} else {
-    // (略)
-}
-// (略)
-} else {
-    // 税率の入力がなければ税率の設定を削除
-```
-
 https://github.com/EC-CUBE/ec-cube/blob/47c2a4266987a943e589fc073ccc4ac85ee48129/src/Eccube/Controller/Admin/Product/CsvImportController.php#L394-L422
 
 :::message alert
@@ -371,27 +335,11 @@ UPDATE dtb_tax_rule
 
 4系の購入フローでは、注文フロー内で税率を毎回取り直します。
 
-```php:src/Eccube/Service/PurchaseFlow/Processor/TaxProcessor.php
-// 注文フロー内で税率が変更された場合を考慮し反映する
-// 受注管理画面内では既に登録された税率は自動で変更しない
-if ($context->isShoppingFlow() || $item->getRoundingType() === null) {
-    $TaxRule = $item->getOrderItemType()->isProduct()
-        ? $this->taxRuleRepository->getByRule($item->getProduct(), $item->getProductClass())
-        : $this->taxRuleRepository->getByRule();
-```
-
 https://github.com/EC-CUBE/ec-cube/blob/47c2a4266987a943e589fc073ccc4ac85ee48129/src/Eccube/Service/PurchaseFlow/Processor/TaxProcessor.php#L102-L112
 
 商品以外 (送料・手数料等) の明細は `getByRule()`、つまり**基本税率**で計算されていることもわかります (パターン3 の注意点)。
 
 税率が変わった場合は `TaxRateChangeValidator` が「税率が更新されました。金額をご確認ください。」と表示して購入手続き画面に戻します。ただし、**税額が 0円の税率区分が最小税率にあるとチェックをスキップする**実装になっています。
-
-```php:src/Eccube/Service/PurchaseFlow/Processor/TaxRateChangeValidator.php
-// 複数配送の場合、$originHolderに税率が設定されないのでチェックしない
-if (0 == current($originHolder->getTaxByTaxRate())) {
-    return;
-}
-```
 
 https://github.com/EC-CUBE/ec-cube/blob/47c2a4266987a943e589fc073ccc4ac85ee48129/src/Eccube/Service/PurchaseFlow/Processor/TaxRateChangeValidator.php#L41-L44
 
@@ -526,16 +474,6 @@ EC-CUBE は受注明細ごとに税率を保存しているため、**既存の�
 **パターン2 (10% と 8% の商品が混在) でポイント機能を使っている店舗は、運用が複雑になります。**
 
 4系では、ポイント利用分は不課税の値引きとして扱われ、税率ごとの合計金額に応じて**按分**されます。
-
-```php:src/Eccube/Entity/Order.php
-foreach ($this->getTaxableTotalByTaxRate() as $rate => $totalPrice) {
-    $total[$rate] = TaxRuleService::roundByRoundingType(
-        $this->getTaxableTotal() ?
-            $totalPrice - abs($this->getTaxFreeDiscount()) * $totalPrice / $this->getTaxableTotal() : 0,
-        $roundingTypes[$rate]->getId()
-    );
-}
-```
 
 https://github.com/EC-CUBE/ec-cube/blob/47c2a4266987a943e589fc073ccc4ac85ee48129/src/Eccube/Entity/Order.php#L119-L125
 
