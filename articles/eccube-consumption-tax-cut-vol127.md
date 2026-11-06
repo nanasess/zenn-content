@@ -16,6 +16,7 @@ published: false
 - 飲食料品の消費税率引下げは、2026年11月6日に法案が衆議院を通過した段階で、まだ成立していません。国税庁の資料も「法案が可決・成立した場合のもの」とされています。
 - 税率引下げに関する国税庁の**通達はまだ公表されていません**。本記事の経過措置の解釈は、閣議決定された大綱、国税庁の Q&A、および過去 (2014年・2019年) の税率改定時の経過措置 Q&A に基づいています。
 - 税率の判定時点 (購入時か出荷時か) や経過措置の適用は、店舗の取引形態・売上計上基準によって異なります。**詳細は顧問税理士等にご確認ください。**
+- 法案の審議状況や通達の公表、EC-CUBE の修正状況などにより、**本記事の内容は今後修正される可能性があります**。
 :::
 
 *この記事は「[【初心者向け】消費税減税対策とPHP緊急セキュリティ対応の相談会 | EC-CUBE名古屋 vol.127](https://ec-cube-nagoya.doorkeeper.jp/events/200110)」(2026年11月7日) の資料として作成しました。*
@@ -130,7 +131,7 @@ if ($ProductClass->getTaxRule()) {
     $taxrule->setApplyDate(new \DateTime());
 ```
 
-https://github.com/EC-CUBE/ec-cube/blob/e797384278b5e5588bc14dbf75a3318578deaec6/src/Eccube/Controller/Admin/Product/ProductController.php#L488-L507
+https://github.com/EC-CUBE/ec-cube/blob/47c2a4266987a943e589fc073ccc4ac85ee48129/src/Eccube/Controller/Admin/Product/ProductController.php#L525-L545
 
 さらに、商品別税率は商品規格と 1対1 (`OneToOne`) で紐付いているため、1つの商品規格に「8%→1%→8%」のような複数の税率を持たせることもできません。
 
@@ -187,13 +188,13 @@ EC-CUBE の設計どおりの構成です。今回の引下げで最も手間が
 EC-CUBE は 2系/3系/4系のいずれも、税率を**その時点の現在時刻**で判定し、受注明細に保存します。4系の判定部分は次のとおりです。
 
 ```php:src/Eccube/Repository/TaxRuleRepository.php
-$apply_date = new \DateTime();
+$parameters = [];
 $qb = $this->createQueryBuilder('t')
-    ->where('t.apply_date < :apply_date')
-    ->setParameter('apply_date', $apply_date);
+    ->where('t.apply_date < :apply_date');
+$parameters[':apply_date'] = new \DateTime();
 ```
 
-https://github.com/EC-CUBE/ec-cube/blob/e797384278b5e5588bc14dbf75a3318578deaec6/src/Eccube/Repository/TaxRuleRepository.php#L147-L150
+https://github.com/EC-CUBE/ec-cube/blob/47c2a4266987a943e589fc073ccc4ac85ee48129/src/Eccube/Repository/TaxRuleRepository.php#L166-L169
 
 受注日時や出荷日ではなく、**計算した瞬間の時刻**で判定しています。バージョンごとの税率確定タイミングは次のとおりです。
 
@@ -332,7 +333,7 @@ EC-CUBE の商品価格は**税抜価格**で登録し、税込価格は「税�
 
 ### EC-CUBE 4系
 
-確認したソースコードは [EC-CUBE/ec-cube の 4.4 ブランチ (e797384)](https://github.com/EC-CUBE/ec-cube/tree/e797384278b5e5588bc14dbf75a3318578deaec6) です。
+確認したソースコードは、多くの店舗で使われている 4.3 系の最新リリース [EC-CUBE/ec-cube 4.3.1-p1](https://github.com/EC-CUBE/ec-cube/tree/4.3.1-p1) です (以下のリンクは同タグのコミット `47c2a42` に固定しています)。開発中の 4.4 系でも、本記事で説明する税率まわりの挙動は同じです。
 
 #### 商品別税率の一括更新は商品 CSV で可能
 
@@ -350,7 +351,7 @@ if ($ProductClassOrg->getTaxRule()) {
     // 税率の入力がなければ税率の設定を削除
 ```
 
-https://github.com/EC-CUBE/ec-cube/blob/e797384278b5e5588bc14dbf75a3318578deaec6/src/Eccube/Controller/Admin/Product/CsvImportController.php#L335-L363
+https://github.com/EC-CUBE/ec-cube/blob/47c2a4266987a943e589fc073ccc4ac85ee48129/src/Eccube/Controller/Admin/Product/CsvImportController.php#L394-L422
 
 :::message alert
 **税率列を空欄にすると商品別税率が削除されます。** 10% 商品・8% 商品が混在する CSV を作る場合は、税率列を空欄にしないよう注意してください。
@@ -379,7 +380,7 @@ if ($context->isShoppingFlow() || $item->getRoundingType() === null) {
         : $this->taxRuleRepository->getByRule();
 ```
 
-https://github.com/EC-CUBE/ec-cube/blob/e797384278b5e5588bc14dbf75a3318578deaec6/src/Eccube/Service/PurchaseFlow/Processor/TaxProcessor.php#L71-L81
+https://github.com/EC-CUBE/ec-cube/blob/47c2a4266987a943e589fc073ccc4ac85ee48129/src/Eccube/Service/PurchaseFlow/Processor/TaxProcessor.php#L102-L112
 
 商品以外 (送料・手数料等) の明細は `getByRule()`、つまり**基本税率**で計算されていることもわかります (パターン3 の注意点)。
 
@@ -392,7 +393,7 @@ if (0 == current($originHolder->getTaxByTaxRate())) {
 }
 ```
 
-https://github.com/EC-CUBE/ec-cube/blob/e797384278b5e5588bc14dbf75a3318578deaec6/src/Eccube/Service/PurchaseFlow/Processor/TaxRateChangeValidator.php#L48-L51
+https://github.com/EC-CUBE/ec-cube/blob/47c2a4266987a943e589fc073ccc4ac85ee48129/src/Eccube/Service/PurchaseFlow/Processor/TaxRateChangeValidator.php#L41-L44
 
 1% では、税込100円未満の商品だけの注文などで税額が0円になりえます。この場合、切替時刻をまたいだ購入手続きで税率変更を検知できない可能性があります (未検証)。メンテナンス画面での切替をおすすめする理由の一つです。
 
@@ -527,13 +528,16 @@ EC-CUBE は受注明細ごとに税率を保存しているため、**既存の�
 4系では、ポイント利用分は不課税の値引きとして扱われ、税率ごとの合計金額に応じて**按分**されます。
 
 ```php:src/Eccube/Entity/Order.php
-// 按分計算: totalPrice - (abs(taxFreeDiscount) * totalPrice / taxableTotal)
-$absDiscount = ltrim($taxFreeDiscount, '-');
-$discountPortion = bcdiv(bcmul($absDiscount, $totalPrice, 6), $taxableTotal, 6);
-$value = bcsub($totalPrice, $discountPortion, 6);
+foreach ($this->getTaxableTotalByTaxRate() as $rate => $totalPrice) {
+    $total[$rate] = TaxRuleService::roundByRoundingType(
+        $this->getTaxableTotal() ?
+            $totalPrice - abs($this->getTaxFreeDiscount()) * $totalPrice / $this->getTaxableTotal() : 0,
+        $roundingTypes[$rate]->getId()
+    );
+}
 ```
 
-https://github.com/EC-CUBE/ec-cube/blob/e797384278b5e5588bc14dbf75a3318578deaec6/src/Eccube/Entity/Order.php#L137-L140
+https://github.com/EC-CUBE/ec-cube/blob/47c2a4266987a943e589fc073ccc4ac85ee48129/src/Eccube/Entity/Order.php#L119-L125
 
 #### 計算例: ポイント利用の受注で食品だけを返品する
 
@@ -555,6 +559,27 @@ https://github.com/EC-CUBE/ec-cube/blob/e797384278b5e5588bc14dbf75a3318578deaec6
 - **③** は「返品した食品に按分されていた分だけを、現金とポイントで返す」処理です。10% 区分は 3/31 時点と変わらず、8% 区分の 943円 (税 70円) だけを 8% の対価の返還として処理できます。ただし、利用ポイントの調整額 (137pt) は**店舗が自分で計算して入力する**必要があります
 
 どちらの処理にするかは、ポイント規約 (返品時に利用ポイントをどう扱うか) と会計処理によって決まります。**税率の切替をまたぐと、②では 3月 (8%・10%) の売上の修正と 4月の返品処理が混ざる**ため、③のように返品した商品の範囲で完結させる方が、後から追いやすくなります。
+
+#### 端数の誤差: 少額ポイントと移行期の3税率
+
+ポイントを税率ごとに按分すると、税率ごとに端数処理が行われるため、**税率別の合計額の総和が実際のお支払い金額と 1〜2円ずれる**ことがあります。4.3.1-p1 の `Order::getTotalByTaxRate()` で、税抜価格 5パターン × 利用ポイント 1〜100pt (各 500件) を計算した結果は次のとおりです。
+
+| 受注に含まれる税率 | 四捨五入 | 切り捨て | 切り上げ |
+|---|---|---|---|
+| 10% + 8% (現在) | 0件 | 500件 (1円) | 500件 (1円) |
+| 10% + 1% (4/1 以後) | 0件 | 498件 (1円) | 500件 (1円) |
+| **10% + 8% + 1% (移行期)** | **119件 (1円)** | **500件 (最大2円)** | **500件 (最大2円)** |
+
+- 課税規則が切り捨て・切り上げの店舗では、**1pt でも利用すればほぼすべての受注で 1円ずれます**。これは現在の 8% でも起きていて、1% になったから増えるわけではありません
+- **移行期は悪化します**。経過措置の 8%・新税率の 1%・標準税率の 10% が1つの受注に並ぶと、税率区分が 3つになって丸めの回数が増え、ずれは最大 2円、**四捨五入でも約4件に1件**ずれるようになります
+  - 例 (四捨五入、2pt 利用): 1%対象 174円 + 8%対象 146円 + 10%対象 767円 = 1,087円 / お支払い 1,086円
+- 1% の税額は「対象額 ÷ 101」なので、対象額が 1円ずれても税額はほとんど変わりません。影響が出るのは主に、**インボイスに記載する税率別の合計額とお支払い金額が一致しない**点です
+
+このずれは [#6335](https://github.com/EC-CUBE/ec-cube/issues/6335) として報告されていて、開発中の 4.4 系では、丸めで生じた誤差を最高税率の区分に寄せて総和をお支払い金額に一致させる補正が入っています。4.3 系以前を使っている店舗で、3税率が混在する受注やポイント併用の受注が多い場合は、この補正の取り込み (カスタマイズ) を検討するか、インボイスを発行する前に税率別の合計を確認する運用にしてください。
+
+:::message
+4.4 系の補正後の実装には、課税規則が「切り捨て」の場合に、税率別の消費税額が割り切れる金額で 1円少なく計算される不具合が見つかっています (例: 10% 対象 1,100円の消費税が 99円になる)。[#7279](https://github.com/EC-CUBE/ec-cube/issues/7279) で報告済みです。4.4 系を利用する場合は、この修正の状況も確認してください。
+:::
 
 #### 返品の種類とポイントの動き (4系)
 
