@@ -49,7 +49,7 @@ published: true
 
 ### 返品
 
-2027年3月31日以前に 8% で販売した飲食料品が 4月1日以後に返品された場合は、**8% で**調整計算します (Q&A 問1-5)。
+2027年3月31日以前に 8% で販売した飲食料品が 4月1日以後に返品された場合は、**8% で**調整計算します (Q&A 問1-5)。逆に、1% で販売した飲食料品の返品・貸倒れは 1% で計算します (大綱 第二 一 1 注3)。2029年4月に 8% へ戻った後に、1% で販売した商品が返品された場合も同じです。
 
 ### 総額表示義務の特例
 
@@ -86,7 +86,7 @@ published: true
 
 1. **2026年12月31日まで**に販売条件 (価格・送料等) を提示している (**税率 1% を前提とした販売条件は除く**。後述のケース D)
 2. **2027年3月31日まで**に申込みを受けている
-3. 提示した条件に従って、**2027年4月1日以後**に引き渡す
+3. 提示した条件を変更せずに、**2027年4月1日以後**に引き渡す (「提示した条件に従って」は 2014年の政令の文言で、今回の大綱・Q&A の規定文にはありません。Q&A 問1-6 では「契約等が変更された場合」は 1% とされています)
 
 過去の経過措置 Q&A ([2014年](https://www.nta.go.jp/publication/pamph/shohi/kaisei/pdf/2191.pdf) 問48〜51、[2019年](https://www.nta.go.jp/publication/pamph/shohi/kaisei/pdf/03.pdf) 問33・34) の解釈は、今回の Q&A 問1-6 の注記とほぼ同じ文言です。過去の解釈から、EC に関係するものを挙げます。
 
@@ -98,6 +98,8 @@ published: true
 
 :::message
 今回の引下げについて、通達で上記と同じ解釈が示されるかは未確定です。通達の公表後に改めて確認してください。
+
+システム改修に伴う税制面の質問は、国税庁が[レジ・システム開発事業者向けの問合せ窓口](https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/0026008-127_annai.pdf) (専用メール、回答は 1〜2週間、2027年4月頃までの設置予定) を設けています。制作会社・開発者はこちらも利用できます。
 :::
 
 ### 定期供給契約の経過措置
@@ -195,7 +197,7 @@ https://github.com/EC-CUBE/ec-cube3/blob/b5593b0a24d25021da8d4ac6020306ada1c4d95
 
 ### 都度購入と定期販売で考え方が違う
 
-制度上、税率は「譲渡 (引渡し) の時期」で判定し、店舗が継続して採用している売上計上基準に従って判断します (Q&A 問1-3)。
+制度上、適用税率は「事業者 (売手) が飲食料品を提供する時点 (取引を行う時点)」、つまり譲渡 (引渡し) の時期で判定します (パンフレット 2ページ)。日付をまたぐ締め時刻など、店舗が継続して採用している売上計上基準に従った計上は、Q&A 問1-3 で認められています。
 
 5%→8% の増税時には、多くの店舗で次のような運用が取られていました。
 
@@ -398,7 +400,9 @@ https://github.com/EC-CUBE/ec-cube/blob/47c2a4266987a943e589fc073ccc4ac85ee48129
 確認したソースコードは [EC-CUBE/ec-cube3 の 3.0 ブランチ (b5593b0、3.0.18-p6)](https://github.com/EC-CUBE/ec-cube3/tree/b5593b0a24d25021da8d4ac6020306ada1c4d95f) です。3系は 2023年3月の 3.0.18-p6 以降、更新がありません。
 
 - 商品別税率の予約はできません (4系と同様、保存時に `setApplyDate(new \DateTime())`)
-  https://github.com/EC-CUBE/ec-cube3/blob/b5593b0a24d25021da8d4ac6020306ada1c4d95f/src/Eccube/Controller/Admin/Product/ProductController.php#L344-L358
+
+https://github.com/EC-CUBE/ec-cube3/blob/b5593b0a24d25021da8d4ac6020306ada1c4d95f/src/Eccube/Controller/Admin/Product/ProductController.php#L344-L358
+
 - **商品 CSV に税率の列がありません**。一括更新は SQL で行います
 
 ```sql
@@ -425,7 +429,9 @@ UPDATE dtb_tax_rule
 確認したソースコードは [EC-CUBE/ec-cube2 の master (e520d5a)](https://github.com/EC-CUBE/ec-cube2/tree/e520d5a8dfc5163ea9bd50b36fa7e5a937d86ebb) です。
 
 - 商品別税率の予約はできません。商品編集画面で保存すると、適用日時は `CURRENT_TIMESTAMP` (DB サーバーの現在日時) になります
-  https://github.com/EC-CUBE/ec-cube2/blob/e520d5a8dfc5163ea9bd50b36fa7e5a937d86ebb/data/class/helper/SC_Helper_TaxRule.php#L373-L383
+
+https://github.com/EC-CUBE/ec-cube2/blob/e520d5a8dfc5163ea9bd50b36fa7e5a937d86ebb/data/class/helper/SC_Helper_TaxRule.php#L373-L383
+
 - **商品 CSV に税率の列がありません**。一括更新は SQL で行います (商品別税率は管理画面の税率一覧にも表示されません)
 
 ```sql
@@ -443,9 +449,13 @@ UPDATE dtb_tax_rule
 - 税率は DB サーバーの `CURRENT_TIMESTAMP` (SQL で「現在日時」を表す値) で判定します。通常は JST で運用されているため問題になりませんが、念のため DB サーバーのタイムゾーンを確認してください
   - MySQL 8.0 / PostgreSQL 16 のコンテナをタイムゾーン未設定 (UTC) で起動し、適用日時を JST の1時間前にした税率で試したところ、どちらも「まだ適用されていない」と判定されました。DB が UTC だと、**切替が 9時間遅れます** (4/1 0:00 ではなく 9:00 に切り替わる)
   - SQLite は `CURRENT_TIMESTAMP` を `datetime('now','localtime')` に置き換えているため、ずれません
-  https://github.com/EC-CUBE/ec-cube2/blob/e520d5a8dfc5163ea9bd50b36fa7e5a937d86ebb/data/class/helper/SC_Helper_TaxRule.php#L299
+
+https://github.com/EC-CUBE/ec-cube2/blob/e520d5a8dfc5163ea9bd50b36fa7e5a937d86ebb/data/class/helper/SC_Helper_TaxRule.php#L299
+
 - 購入確認画面の表示後に税率が変わっても、カートの変更検知 (`checkChangeCart`) は数量と商品 ID しか比較しないため、**確認画面で見た金額と実際の請求額が変わる**可能性があります
-  https://github.com/EC-CUBE/ec-cube2/blob/e520d5a8dfc5163ea9bd50b36fa7e5a937d86ebb/data/class/SC_CartSession.php#L83-L102
+
+https://github.com/EC-CUBE/ec-cube2/blob/e520d5a8dfc5163ea9bd50b36fa7e5a937d86ebb/data/class/SC_CartSession.php#L83-L102
+
 - 受注編集で既存明細の税率は維持されますが、追加・変更した商品は編集時点の税率になります
 - マイページの購入履歴は、現在の税込価格と異なる商品に「金額が変更されている商品」と表示するため、切替後は過去の飲食料品の受注すべてに表示されます
 - 納品書 PDF には税率別の内訳が出ます。値引き按分の端数調整で、**課税規則の値を税率として扱っていた不具合**がありました。8%/10% だけのうちは影響がありませんでしたが、1% と課税規則「四捨五入」(値 = 1) が重なると影響が出る実装でした。[17d6b8e](https://github.com/EC-CUBE/ec-cube2/commit/17d6b8eeaf654932c7e52cf2f7c25518a8055e3f) で修正済みで、eccube2-weekly-20260728 以降に含まれています。古いバージョンを使っている場合は更新を検討してください
@@ -475,7 +485,7 @@ EC-CUBE のコアには定期購入の機能がありません。定期購入は
 
 ### 制度上の扱い
 
-- **返品**: 3/31 以前に 8% で販売した飲食料品が 4/1 以後に返品された場合は、**8% で**対価の返還等の消費税額を計算します (Q&A 問1-5)
+- **返品**: 3/31 以前に 8% で販売した飲食料品が 4/1 以後に返品された場合は、**8% で**対価の返還等の消費税額を計算します (Q&A 問1-5)。1% で販売したものの返品は 1% で計算します (大綱)
 - **交換**: 不良品の交換などを「元の取引の履行」とみるか、「返品 + 新たな販売 (1%)」とみるかは、資料に明記がありません。顧問税理士に確認してください
 - **明細変更 (商品の追加・差し替え)**: 4/1 以後に新たに引き渡す商品は、原則として 1% の対象と考えられます (経過措置の対象になる場合を除く)
 
@@ -670,6 +680,7 @@ SaaS 型のカートシステムは、こうした切替をサービス側が一
   - [リーフレット「飲食料品に係る２年間の消費税率引下げについて」](https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/0026008-127_leaflet.pdf)
   - [パンフレット「飲食料品に係る２年間の消費税率引下げについて」](https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/0026008-127_pamphlet.pdf)
   - [飲食料品に係る２年間の消費税率引下げに関するＱ＆Ａ](https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/0026008-127_qa.pdf)
+  - [レジ・システム開発事業者の方向けの問合せ窓口について](https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/0026008-127_annai.pdf)
 - [飲食料品消費税率の臨時的な引下げ及び就業者負担軽減支援金の導入に関する大綱 (2026年9月15日閣議決定)](https://www.cas.go.jp/jp/seisaku/shouhizei_zeigakukoujo/pdf/sankou8.pdf)
 - [平成26年4月1日以後に行われる資産の譲渡等に適用される消費税率等に関する経過措置の取扱いＱ＆Ａ](https://www.nta.go.jp/publication/pamph/shohi/kaisei/pdf/2191.pdf)
 - [平成31年（2019年）10月１日以後に行われる資産の譲渡等に適用される消費税率等に関する経過措置の取扱いＱ＆Ａ【具体的事例編】](https://www.nta.go.jp/publication/pamph/shohi/kaisei/pdf/03.pdf)
