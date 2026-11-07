@@ -3,7 +3,7 @@ title: "2027年4月消費税減税 EC-CUBE対応方法まとめ (2系/3系/4系)
 emoji: "🧾"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["eccube", "消費税", "ec", "php"]
-published: false
+published: true
 ---
 
 :::message
